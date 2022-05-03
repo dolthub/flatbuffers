@@ -175,16 +175,24 @@ func GetSizePrefixedRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *
 	return x
 }
 
+func GetRootAsScalarStuffValue(buf []byte, offset flatbuffers.UOffsetT) ScalarStuff {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := ScalarStuff{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *ScalarStuff) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
 }
 
-func (rcv *ScalarStuff) Table() flatbuffers.Table {
+func (rcv ScalarStuff) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *ScalarStuff) JustI8() int8 {
+func (rcv ScalarStuff) JustI8() int8 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		return rcv._tab.GetInt8(o + rcv._tab.Pos)
@@ -192,11 +200,11 @@ func (rcv *ScalarStuff) JustI8() int8 {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustI8(n int8) bool {
+func (rcv ScalarStuff) MutateJustI8(n int8) bool {
 	return rcv._tab.MutateInt8Slot(4, n)
 }
 
-func (rcv *ScalarStuff) MaybeI8() *int8 {
+func (rcv ScalarStuff) MaybeI8() *int8 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		v := rcv._tab.GetInt8(o + rcv._tab.Pos)
@@ -205,11 +213,11 @@ func (rcv *ScalarStuff) MaybeI8() *int8 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeI8(n int8) bool {
+func (rcv ScalarStuff) MutateMaybeI8(n int8) bool {
 	return rcv._tab.MutateInt8Slot(6, n)
 }
 
-func (rcv *ScalarStuff) DefaultI8() int8 {
+func (rcv ScalarStuff) DefaultI8() int8 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		return rcv._tab.GetInt8(o + rcv._tab.Pos)
@@ -217,11 +225,11 @@ func (rcv *ScalarStuff) DefaultI8() int8 {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultI8(n int8) bool {
+func (rcv ScalarStuff) MutateDefaultI8(n int8) bool {
 	return rcv._tab.MutateInt8Slot(8, n)
 }
 
-func (rcv *ScalarStuff) JustU8() byte {
+func (rcv ScalarStuff) JustU8() byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
 		return rcv._tab.GetByte(o + rcv._tab.Pos)
@@ -229,11 +237,11 @@ func (rcv *ScalarStuff) JustU8() byte {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustU8(n byte) bool {
+func (rcv ScalarStuff) MutateJustU8(n byte) bool {
 	return rcv._tab.MutateByteSlot(10, n)
 }
 
-func (rcv *ScalarStuff) MaybeU8() *byte {
+func (rcv ScalarStuff) MaybeU8() *byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(12))
 	if o != 0 {
 		v := rcv._tab.GetByte(o + rcv._tab.Pos)
@@ -242,11 +250,11 @@ func (rcv *ScalarStuff) MaybeU8() *byte {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeU8(n byte) bool {
+func (rcv ScalarStuff) MutateMaybeU8(n byte) bool {
 	return rcv._tab.MutateByteSlot(12, n)
 }
 
-func (rcv *ScalarStuff) DefaultU8() byte {
+func (rcv ScalarStuff) DefaultU8() byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
 	if o != 0 {
 		return rcv._tab.GetByte(o + rcv._tab.Pos)
@@ -254,11 +262,11 @@ func (rcv *ScalarStuff) DefaultU8() byte {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultU8(n byte) bool {
+func (rcv ScalarStuff) MutateDefaultU8(n byte) bool {
 	return rcv._tab.MutateByteSlot(14, n)
 }
 
-func (rcv *ScalarStuff) JustI16() int16 {
+func (rcv ScalarStuff) JustI16() int16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
 	if o != 0 {
 		return rcv._tab.GetInt16(o + rcv._tab.Pos)
@@ -266,11 +274,11 @@ func (rcv *ScalarStuff) JustI16() int16 {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustI16(n int16) bool {
+func (rcv ScalarStuff) MutateJustI16(n int16) bool {
 	return rcv._tab.MutateInt16Slot(16, n)
 }
 
-func (rcv *ScalarStuff) MaybeI16() *int16 {
+func (rcv ScalarStuff) MaybeI16() *int16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
 	if o != 0 {
 		v := rcv._tab.GetInt16(o + rcv._tab.Pos)
@@ -279,11 +287,11 @@ func (rcv *ScalarStuff) MaybeI16() *int16 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeI16(n int16) bool {
+func (rcv ScalarStuff) MutateMaybeI16(n int16) bool {
 	return rcv._tab.MutateInt16Slot(18, n)
 }
 
-func (rcv *ScalarStuff) DefaultI16() int16 {
+func (rcv ScalarStuff) DefaultI16() int16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
 	if o != 0 {
 		return rcv._tab.GetInt16(o + rcv._tab.Pos)
@@ -291,11 +299,11 @@ func (rcv *ScalarStuff) DefaultI16() int16 {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultI16(n int16) bool {
+func (rcv ScalarStuff) MutateDefaultI16(n int16) bool {
 	return rcv._tab.MutateInt16Slot(20, n)
 }
 
-func (rcv *ScalarStuff) JustU16() uint16 {
+func (rcv ScalarStuff) JustU16() uint16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
 	if o != 0 {
 		return rcv._tab.GetUint16(o + rcv._tab.Pos)
@@ -303,11 +311,11 @@ func (rcv *ScalarStuff) JustU16() uint16 {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustU16(n uint16) bool {
+func (rcv ScalarStuff) MutateJustU16(n uint16) bool {
 	return rcv._tab.MutateUint16Slot(22, n)
 }
 
-func (rcv *ScalarStuff) MaybeU16() *uint16 {
+func (rcv ScalarStuff) MaybeU16() *uint16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
 	if o != 0 {
 		v := rcv._tab.GetUint16(o + rcv._tab.Pos)
@@ -316,11 +324,11 @@ func (rcv *ScalarStuff) MaybeU16() *uint16 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeU16(n uint16) bool {
+func (rcv ScalarStuff) MutateMaybeU16(n uint16) bool {
 	return rcv._tab.MutateUint16Slot(24, n)
 }
 
-func (rcv *ScalarStuff) DefaultU16() uint16 {
+func (rcv ScalarStuff) DefaultU16() uint16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
 		return rcv._tab.GetUint16(o + rcv._tab.Pos)
@@ -328,11 +336,11 @@ func (rcv *ScalarStuff) DefaultU16() uint16 {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultU16(n uint16) bool {
+func (rcv ScalarStuff) MutateDefaultU16(n uint16) bool {
 	return rcv._tab.MutateUint16Slot(26, n)
 }
 
-func (rcv *ScalarStuff) JustI32() int32 {
+func (rcv ScalarStuff) JustI32() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
 	if o != 0 {
 		return rcv._tab.GetInt32(o + rcv._tab.Pos)
@@ -340,11 +348,11 @@ func (rcv *ScalarStuff) JustI32() int32 {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustI32(n int32) bool {
+func (rcv ScalarStuff) MutateJustI32(n int32) bool {
 	return rcv._tab.MutateInt32Slot(28, n)
 }
 
-func (rcv *ScalarStuff) MaybeI32() *int32 {
+func (rcv ScalarStuff) MaybeI32() *int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(30))
 	if o != 0 {
 		v := rcv._tab.GetInt32(o + rcv._tab.Pos)
@@ -353,11 +361,11 @@ func (rcv *ScalarStuff) MaybeI32() *int32 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeI32(n int32) bool {
+func (rcv ScalarStuff) MutateMaybeI32(n int32) bool {
 	return rcv._tab.MutateInt32Slot(30, n)
 }
 
-func (rcv *ScalarStuff) DefaultI32() int32 {
+func (rcv ScalarStuff) DefaultI32() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(32))
 	if o != 0 {
 		return rcv._tab.GetInt32(o + rcv._tab.Pos)
@@ -365,11 +373,11 @@ func (rcv *ScalarStuff) DefaultI32() int32 {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultI32(n int32) bool {
+func (rcv ScalarStuff) MutateDefaultI32(n int32) bool {
 	return rcv._tab.MutateInt32Slot(32, n)
 }
 
-func (rcv *ScalarStuff) JustU32() uint32 {
+func (rcv ScalarStuff) JustU32() uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(34))
 	if o != 0 {
 		return rcv._tab.GetUint32(o + rcv._tab.Pos)
@@ -377,11 +385,11 @@ func (rcv *ScalarStuff) JustU32() uint32 {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustU32(n uint32) bool {
+func (rcv ScalarStuff) MutateJustU32(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(34, n)
 }
 
-func (rcv *ScalarStuff) MaybeU32() *uint32 {
+func (rcv ScalarStuff) MaybeU32() *uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(36))
 	if o != 0 {
 		v := rcv._tab.GetUint32(o + rcv._tab.Pos)
@@ -390,11 +398,11 @@ func (rcv *ScalarStuff) MaybeU32() *uint32 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeU32(n uint32) bool {
+func (rcv ScalarStuff) MutateMaybeU32(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(36, n)
 }
 
-func (rcv *ScalarStuff) DefaultU32() uint32 {
+func (rcv ScalarStuff) DefaultU32() uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(38))
 	if o != 0 {
 		return rcv._tab.GetUint32(o + rcv._tab.Pos)
@@ -402,11 +410,11 @@ func (rcv *ScalarStuff) DefaultU32() uint32 {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultU32(n uint32) bool {
+func (rcv ScalarStuff) MutateDefaultU32(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(38, n)
 }
 
-func (rcv *ScalarStuff) JustI64() int64 {
+func (rcv ScalarStuff) JustI64() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(40))
 	if o != 0 {
 		return rcv._tab.GetInt64(o + rcv._tab.Pos)
@@ -414,11 +422,11 @@ func (rcv *ScalarStuff) JustI64() int64 {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustI64(n int64) bool {
+func (rcv ScalarStuff) MutateJustI64(n int64) bool {
 	return rcv._tab.MutateInt64Slot(40, n)
 }
 
-func (rcv *ScalarStuff) MaybeI64() *int64 {
+func (rcv ScalarStuff) MaybeI64() *int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(42))
 	if o != 0 {
 		v := rcv._tab.GetInt64(o + rcv._tab.Pos)
@@ -427,11 +435,11 @@ func (rcv *ScalarStuff) MaybeI64() *int64 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeI64(n int64) bool {
+func (rcv ScalarStuff) MutateMaybeI64(n int64) bool {
 	return rcv._tab.MutateInt64Slot(42, n)
 }
 
-func (rcv *ScalarStuff) DefaultI64() int64 {
+func (rcv ScalarStuff) DefaultI64() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(44))
 	if o != 0 {
 		return rcv._tab.GetInt64(o + rcv._tab.Pos)
@@ -439,11 +447,11 @@ func (rcv *ScalarStuff) DefaultI64() int64 {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultI64(n int64) bool {
+func (rcv ScalarStuff) MutateDefaultI64(n int64) bool {
 	return rcv._tab.MutateInt64Slot(44, n)
 }
 
-func (rcv *ScalarStuff) JustU64() uint64 {
+func (rcv ScalarStuff) JustU64() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(46))
 	if o != 0 {
 		return rcv._tab.GetUint64(o + rcv._tab.Pos)
@@ -451,11 +459,11 @@ func (rcv *ScalarStuff) JustU64() uint64 {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustU64(n uint64) bool {
+func (rcv ScalarStuff) MutateJustU64(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(46, n)
 }
 
-func (rcv *ScalarStuff) MaybeU64() *uint64 {
+func (rcv ScalarStuff) MaybeU64() *uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(48))
 	if o != 0 {
 		v := rcv._tab.GetUint64(o + rcv._tab.Pos)
@@ -464,11 +472,11 @@ func (rcv *ScalarStuff) MaybeU64() *uint64 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeU64(n uint64) bool {
+func (rcv ScalarStuff) MutateMaybeU64(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(48, n)
 }
 
-func (rcv *ScalarStuff) DefaultU64() uint64 {
+func (rcv ScalarStuff) DefaultU64() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(50))
 	if o != 0 {
 		return rcv._tab.GetUint64(o + rcv._tab.Pos)
@@ -476,11 +484,11 @@ func (rcv *ScalarStuff) DefaultU64() uint64 {
 	return 42
 }
 
-func (rcv *ScalarStuff) MutateDefaultU64(n uint64) bool {
+func (rcv ScalarStuff) MutateDefaultU64(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(50, n)
 }
 
-func (rcv *ScalarStuff) JustF32() float32 {
+func (rcv ScalarStuff) JustF32() float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(52))
 	if o != 0 {
 		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
@@ -488,11 +496,11 @@ func (rcv *ScalarStuff) JustF32() float32 {
 	return 0.0
 }
 
-func (rcv *ScalarStuff) MutateJustF32(n float32) bool {
+func (rcv ScalarStuff) MutateJustF32(n float32) bool {
 	return rcv._tab.MutateFloat32Slot(52, n)
 }
 
-func (rcv *ScalarStuff) MaybeF32() *float32 {
+func (rcv ScalarStuff) MaybeF32() *float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(54))
 	if o != 0 {
 		v := rcv._tab.GetFloat32(o + rcv._tab.Pos)
@@ -501,11 +509,11 @@ func (rcv *ScalarStuff) MaybeF32() *float32 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeF32(n float32) bool {
+func (rcv ScalarStuff) MutateMaybeF32(n float32) bool {
 	return rcv._tab.MutateFloat32Slot(54, n)
 }
 
-func (rcv *ScalarStuff) DefaultF32() float32 {
+func (rcv ScalarStuff) DefaultF32() float32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(56))
 	if o != 0 {
 		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
@@ -513,11 +521,11 @@ func (rcv *ScalarStuff) DefaultF32() float32 {
 	return 42.0
 }
 
-func (rcv *ScalarStuff) MutateDefaultF32(n float32) bool {
+func (rcv ScalarStuff) MutateDefaultF32(n float32) bool {
 	return rcv._tab.MutateFloat32Slot(56, n)
 }
 
-func (rcv *ScalarStuff) JustF64() float64 {
+func (rcv ScalarStuff) JustF64() float64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(58))
 	if o != 0 {
 		return rcv._tab.GetFloat64(o + rcv._tab.Pos)
@@ -525,11 +533,11 @@ func (rcv *ScalarStuff) JustF64() float64 {
 	return 0.0
 }
 
-func (rcv *ScalarStuff) MutateJustF64(n float64) bool {
+func (rcv ScalarStuff) MutateJustF64(n float64) bool {
 	return rcv._tab.MutateFloat64Slot(58, n)
 }
 
-func (rcv *ScalarStuff) MaybeF64() *float64 {
+func (rcv ScalarStuff) MaybeF64() *float64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(60))
 	if o != 0 {
 		v := rcv._tab.GetFloat64(o + rcv._tab.Pos)
@@ -538,11 +546,11 @@ func (rcv *ScalarStuff) MaybeF64() *float64 {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeF64(n float64) bool {
+func (rcv ScalarStuff) MutateMaybeF64(n float64) bool {
 	return rcv._tab.MutateFloat64Slot(60, n)
 }
 
-func (rcv *ScalarStuff) DefaultF64() float64 {
+func (rcv ScalarStuff) DefaultF64() float64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(62))
 	if o != 0 {
 		return rcv._tab.GetFloat64(o + rcv._tab.Pos)
@@ -550,11 +558,11 @@ func (rcv *ScalarStuff) DefaultF64() float64 {
 	return 42.0
 }
 
-func (rcv *ScalarStuff) MutateDefaultF64(n float64) bool {
+func (rcv ScalarStuff) MutateDefaultF64(n float64) bool {
 	return rcv._tab.MutateFloat64Slot(62, n)
 }
 
-func (rcv *ScalarStuff) JustBool() bool {
+func (rcv ScalarStuff) JustBool() bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
 	if o != 0 {
 		return rcv._tab.GetBool(o + rcv._tab.Pos)
@@ -562,11 +570,11 @@ func (rcv *ScalarStuff) JustBool() bool {
 	return false
 }
 
-func (rcv *ScalarStuff) MutateJustBool(n bool) bool {
+func (rcv ScalarStuff) MutateJustBool(n bool) bool {
 	return rcv._tab.MutateBoolSlot(64, n)
 }
 
-func (rcv *ScalarStuff) MaybeBool() *bool {
+func (rcv ScalarStuff) MaybeBool() *bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(66))
 	if o != 0 {
 		v := rcv._tab.GetBool(o + rcv._tab.Pos)
@@ -575,11 +583,11 @@ func (rcv *ScalarStuff) MaybeBool() *bool {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeBool(n bool) bool {
+func (rcv ScalarStuff) MutateMaybeBool(n bool) bool {
 	return rcv._tab.MutateBoolSlot(66, n)
 }
 
-func (rcv *ScalarStuff) DefaultBool() bool {
+func (rcv ScalarStuff) DefaultBool() bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(68))
 	if o != 0 {
 		return rcv._tab.GetBool(o + rcv._tab.Pos)
@@ -587,11 +595,11 @@ func (rcv *ScalarStuff) DefaultBool() bool {
 	return true
 }
 
-func (rcv *ScalarStuff) MutateDefaultBool(n bool) bool {
+func (rcv ScalarStuff) MutateDefaultBool(n bool) bool {
 	return rcv._tab.MutateBoolSlot(68, n)
 }
 
-func (rcv *ScalarStuff) JustEnum() OptionalByte {
+func (rcv ScalarStuff) JustEnum() OptionalByte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(70))
 	if o != 0 {
 		return OptionalByte(rcv._tab.GetInt8(o + rcv._tab.Pos))
@@ -599,11 +607,11 @@ func (rcv *ScalarStuff) JustEnum() OptionalByte {
 	return 0
 }
 
-func (rcv *ScalarStuff) MutateJustEnum(n OptionalByte) bool {
+func (rcv ScalarStuff) MutateJustEnum(n OptionalByte) bool {
 	return rcv._tab.MutateInt8Slot(70, int8(n))
 }
 
-func (rcv *ScalarStuff) MaybeEnum() *OptionalByte {
+func (rcv ScalarStuff) MaybeEnum() *OptionalByte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
 	if o != 0 {
 		v := OptionalByte(rcv._tab.GetInt8(o + rcv._tab.Pos))
@@ -612,11 +620,11 @@ func (rcv *ScalarStuff) MaybeEnum() *OptionalByte {
 	return nil
 }
 
-func (rcv *ScalarStuff) MutateMaybeEnum(n OptionalByte) bool {
+func (rcv ScalarStuff) MutateMaybeEnum(n OptionalByte) bool {
 	return rcv._tab.MutateInt8Slot(72, int8(n))
 }
 
-func (rcv *ScalarStuff) DefaultEnum() OptionalByte {
+func (rcv ScalarStuff) DefaultEnum() OptionalByte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
 	if o != 0 {
 		return OptionalByte(rcv._tab.GetInt8(o + rcv._tab.Pos))
@@ -624,7 +632,7 @@ func (rcv *ScalarStuff) DefaultEnum() OptionalByte {
 	return 1
 }
 
-func (rcv *ScalarStuff) MutateDefaultEnum(n OptionalByte) bool {
+func (rcv ScalarStuff) MutateDefaultEnum(n OptionalByte) bool {
 	return rcv._tab.MutateInt8Slot(74, int8(n))
 }
 

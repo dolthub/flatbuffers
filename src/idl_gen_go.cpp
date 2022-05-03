@@ -303,11 +303,28 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
+  // Initialize a new struct or table from existing data.
+  void NewRootTypeValueFromBuffer(const StructDef &struct_def,
+                                  std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    const std::string struct_type = namer_.Type(struct_def);
+    code += "func GetRootAs" + struct_type + "Value";
+    code += "(buf []byte, offset flatbuffers.UOffsetT) ";
+    code += "" + struct_type;  // value return type
+    code += " {\n";
+    code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
+    code += "\tx := " + struct_type + "{}\n";
+    code += "\tx._tab.Bytes = buf\n";
+    code += "\tx._tab.Pos = n+offset\n";
+    code += "\treturn x\n";
+    code += "}\n\n";
+  }
+
   // Initialize an existing object with other data, to avoid an allocation.
   void InitializeExisting(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    GenReceiver(struct_def, code_ptr);
+    GenPtrReceiver(struct_def, code_ptr);
     code += " Init(buf []byte, i flatbuffers.UOffsetT) ";
     code += "{\n";
     code += "\trcv._tab.Bytes = buf\n";
@@ -653,6 +670,12 @@ class GoGenerator : public BaseGenerator {
   // Generate the receiver for function signatures.
   void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
+    code += "func (rcv " + namer_.Type(struct_def) + ")";
+  }
+
+  // Generate the receiver for function signatures.
+  void GenPtrReceiver(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
     code += "func (rcv *" + namer_.Type(struct_def) + ")";
   }
 
@@ -801,6 +824,7 @@ class GoGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
+      NewRootTypeValueFromBuffer(struct_def, code_ptr);
     }
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.

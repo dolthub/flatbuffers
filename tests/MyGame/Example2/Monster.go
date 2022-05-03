@@ -43,12 +43,20 @@ func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Mons
 	return x
 }
 
+func GetRootAsMonsterValue(buf []byte, offset flatbuffers.UOffsetT) Monster {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := Monster{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
 }
 
-func (rcv *Monster) Table() flatbuffers.Table {
+func (rcv Monster) Table() flatbuffers.Table {
 	return rcv._tab
 }
 

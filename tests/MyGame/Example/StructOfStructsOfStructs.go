@@ -34,11 +34,11 @@ func (rcv *StructOfStructsOfStructs) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Pos = i
 }
 
-func (rcv *StructOfStructsOfStructs) Table() flatbuffers.Table {
+func (rcv StructOfStructsOfStructs) Table() flatbuffers.Table {
 	return rcv._tab.Table
 }
 
-func (rcv *StructOfStructsOfStructs) A(obj *StructOfStructs) *StructOfStructs {
+func (rcv StructOfStructsOfStructs) A(obj *StructOfStructs) *StructOfStructs {
 	if obj == nil {
 		obj = new(StructOfStructs)
 	}

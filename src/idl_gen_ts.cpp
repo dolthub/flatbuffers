@@ -220,9 +220,7 @@ class TsGenerator : public BaseGenerator {
         // require modifying AddImport to ensure that we don't use
         // namespace-prefixed names anywhere...
         std::string file = it.first;
-        if (file.empty()) {
-          continue;
-        }
+        if (file.empty()) { continue; }
         std::string noext = flatbuffers::StripExtension(file);
         std::string basename = flatbuffers::StripPath(noext);
         std::string include_file = GeneratedFileName(
@@ -232,7 +230,8 @@ class TsGenerator : public BaseGenerator {
         // specified here? Should we always be adding the "./" for a relative
         // path or turn it off if --include-prefix is specified, or something
         // else?
-        std::string include_name = "./" + flatbuffers::StripExtension(include_file);
+        std::string include_name =
+            "./" + flatbuffers::StripExtension(include_file);
         code += "import {";
         for (const auto &pair : it.second) {
           code += EscapeKeyword(pair.first) + " as " +
@@ -636,14 +635,16 @@ class TsGenerator : public BaseGenerator {
 
     if (parser_.opts.ts_flat_file) {
       std::string file = dependency.declaration_file == nullptr
-                                   ? dependency.file
-                                   : dependency.declaration_file->substr(2);
+                             ? dependency.file
+                             : dependency.declaration_file->substr(2);
       file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                                dependency.file).substr(2);
+                                dependency.file)
+                 .substr(2);
       long_import_name = ns + import_name;
       flat_file_import_declarations_[file][import_name] = long_import_name;
       if (parser_.opts.generate_object_based_api) {
-        flat_file_import_declarations_[file][import_name + "T"] = long_import_name + "T";
+        flat_file_import_declarations_[file][import_name + "T"] =
+            long_import_name + "T";
       }
     }
 
@@ -716,10 +717,11 @@ class TsGenerator : public BaseGenerator {
 
     if (parser_.opts.ts_flat_file) {
       std::string file = dependency.declaration_file == nullptr
-                                   ? dependency.file
-                                   : dependency.declaration_file->substr(2);
+                             ? dependency.file
+                             : dependency.declaration_file->substr(2);
       file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                                dependency.file).substr(2);
+                                dependency.file)
+                 .substr(2);
       long_import_name = ns + import_name;
       flat_file_import_declarations_[file][import_name] = long_import_name;
     }
@@ -968,7 +970,7 @@ class TsGenerator : public BaseGenerator {
       } else {
         if (nullCheck) {
           std::string nullValue = "0";
-          if (field.value.type.base_type == BASE_TYPE_BOOL) { 
+          if (field.value.type.base_type == BASE_TYPE_BOOL) {
             nullValue = "false";
           }
           ret += "(" + curr_member_accessor + " ?? " + nullValue + ")";
@@ -1073,14 +1075,12 @@ class TsGenerator : public BaseGenerator {
             field_type += GetObjApiClassName(AddImport(imports, struct_def, sd),
                                              parser.opts);
 
-            const std::string field_accessor =
-                "this." + field_name + "()";
+            const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
             auto packing = GenNullCheckConditional(
                 "this." + field_name_escaped,
-                "this." + field_name_escaped + "!.pack(builder)",
-                "0");
+                "this." + field_name_escaped + "!.pack(builder)", "0");
 
             if (sd.fixed) {
               field_offset_val = std::move(packing);
@@ -1210,8 +1210,7 @@ class TsGenerator : public BaseGenerator {
       // FIXME: if field_type and field_name_escaped are identical, then
       // this generates invalid typescript.
       constructor_func += "  public " + field_name_escaped + ": " + field_type +
-                          " = " +
-                          field_default_val;
+                          " = " + field_default_val;
 
       if (!struct_def.fixed) {
         if (!field_offset_decl.empty()) {
@@ -1222,7 +1221,8 @@ class TsGenerator : public BaseGenerator {
           pack_func_create_call += field_offset_val;
         } else {
           if (field.IsScalarOptional()) {
-            pack_func_create_call += "  if (" + field_offset_val + " !== null)\n  ";
+            pack_func_create_call +=
+                "  if (" + field_offset_val + " !== null)\n  ";
           }
           pack_func_create_call += "  " + struct_name + ".add" +
                                    ConvertCase(field.name, Case::kUpperCamel) +
@@ -1730,8 +1730,8 @@ class TsGenerator : public BaseGenerator {
         }
 
         code += "):flatbuffers.Offset {\n";
-        code += "  " + object_name + ".start" +
-                GetPrefixedName(struct_def) + "(builder);\n";
+        code += "  " + object_name + ".start" + GetPrefixedName(struct_def) +
+                "(builder);\n";
 
         std::string methodPrefix = object_name;
         for (auto it = struct_def.fields.vec.begin();
