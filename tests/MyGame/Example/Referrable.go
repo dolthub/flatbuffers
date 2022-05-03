@@ -32,30 +32,30 @@ type Referrable struct {
 	_tab flatbuffers.Table
 }
 
-func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) Referrable {
+func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := Referrable{}
+	x := &Referrable{}
 	x.Init(buf, n+offset)
 	return x
 }
 
-func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) Referrable {
+func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := Referrable{}
+	x := &Referrable{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 
-func (rcv Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
 }
 
-func (rcv Referrable) Table() flatbuffers.Table {
+func (rcv *Referrable) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv Referrable) Id() uint64 {
+func (rcv *Referrable) Id() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		return rcv._tab.GetUint64(o + rcv._tab.Pos)
@@ -63,7 +63,7 @@ func (rcv Referrable) Id() uint64 {
 	return 0
 }
 
-func (rcv Referrable) MutateId(n uint64) bool {
+func (rcv *Referrable) MutateId(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(4, n)
 }
 
