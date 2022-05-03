@@ -24,16 +24,24 @@ func GetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) 
 	return x
 }
 
+func GetRootAsHelloRequestValue(buf []byte, offset flatbuffers.UOffsetT) HelloRequest {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := HelloRequest{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *HelloRequest) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
 }
 
-func (rcv *HelloRequest) Table() flatbuffers.Table {
+func (rcv HelloRequest) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *HelloRequest) Name() []byte {
+func (rcv HelloRequest) Name() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		return rcv._tab.ByteVector(o + rcv._tab.Pos)
