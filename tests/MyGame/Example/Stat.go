@@ -39,30 +39,30 @@ type Stat struct {
 	_tab flatbuffers.Table
 }
 
-func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
+func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) Stat {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &Stat{}
+	x := Stat{}
 	x.Init(buf, n+offset)
 	return x
 }
 
-func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
+func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) Stat {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &Stat{}
+	x := Stat{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 
-func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
 }
 
-func (rcv *Stat) Table() flatbuffers.Table {
+func (rcv Stat) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *Stat) Id() []byte {
+func (rcv Stat) Id() []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		return rcv._tab.ByteVector(o + rcv._tab.Pos)
@@ -70,7 +70,7 @@ func (rcv *Stat) Id() []byte {
 	return nil
 }
 
-func (rcv *Stat) Val() int64 {
+func (rcv Stat) Val() int64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		return rcv._tab.GetInt64(o + rcv._tab.Pos)
@@ -78,11 +78,11 @@ func (rcv *Stat) Val() int64 {
 	return 0
 }
 
-func (rcv *Stat) MutateVal(n int64) bool {
+func (rcv Stat) MutateVal(n int64) bool {
 	return rcv._tab.MutateInt64Slot(6, n)
 }
 
-func (rcv *Stat) Count() uint16 {
+func (rcv Stat) Count() uint16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		return rcv._tab.GetUint16(o + rcv._tab.Pos)
@@ -90,7 +90,7 @@ func (rcv *Stat) Count() uint16 {
 	return 0
 }
 
-func (rcv *Stat) MutateCount(n uint16) bool {
+func (rcv Stat) MutateCount(n uint16) bool {
 	return rcv._tab.MutateUint16Slot(8, n)
 }
 
