@@ -283,7 +283,7 @@ class GoGenerator : public BaseGenerator {
     for (int i = 0; i < 2; i++) {
       code += "func Get" + size_prefix[i] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-      code += "" + struct_type + "";
+      code += "*" + struct_type + "";
       code += " {\n";
       if (i == 0) {
         code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
@@ -292,7 +292,7 @@ class GoGenerator : public BaseGenerator {
             "\tn := "
             "flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
       }
-      code += "\tx := " + struct_type + "{}\n";
+      code += "\tx := &" + struct_type + "{}\n";
       if (i == 0) {
         code += "\tx.Init(buf, n+offset)\n";
       } else {
@@ -653,7 +653,7 @@ class GoGenerator : public BaseGenerator {
   // Generate the receiver for function signatures.
   void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "func (rcv " + namer_.Type(struct_def) + ")";
+    code += "func (rcv *" + namer_.Type(struct_def) + ")";
   }
 
   // Generate a struct field getter, conditioned on its child type(s).
