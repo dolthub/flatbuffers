@@ -24,6 +24,14 @@ func GetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *H
 	return x
 }
 
+func GetRootAsHelloReplyValue(buf []byte, offset flatbuffers.UOffsetT) HelloReply {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := HelloReply{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *HelloReply) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
