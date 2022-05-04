@@ -166,6 +166,8 @@ jobs:
   build-android:
    name: Build Android (on Linux)
    runs-on: ubuntu-latest
+   strategy:
+      fail-fast: false
    steps:
    - uses: actions/checkout@v2
    - name: set up JDK 1.8
