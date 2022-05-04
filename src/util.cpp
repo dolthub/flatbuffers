@@ -46,8 +46,8 @@
 
 #include <clocale>
 #include <cstdlib>
-#include <fstream>
 #include <functional>
+#include <fstream>
 
 #include "flatbuffers/base.h"
 
