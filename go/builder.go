@@ -240,11 +240,13 @@ func (b *Builder) Offset() UOffsetT {
 	return UOffsetT(len(b.Bytes)) - b.head
 }
 
+var padding []byte = make([]byte, 8)
+
 // Pad places zeros at the current offset.
 func (b *Builder) Pad(n int) {
-	for i := 0; i < n; i++ {
-		b.PlaceByte(0)
-	}
+	stop := b.head
+	b.head -= UOffsetT(n)
+	copy(b.Bytes[b.head:stop], padding)
 }
 
 // Prep prepares to write an element of `size` after `additional_bytes`
