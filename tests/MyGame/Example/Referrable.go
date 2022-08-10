@@ -67,8 +67,10 @@ func (rcv *Referrable) MutateId(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(4, n)
 }
 
+const ReferrableNumFields = 1
+
 func ReferrableStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(ReferrableNumFields)
 }
 func ReferrableAddId(builder *flatbuffers.Builder, id uint64) {
 	builder.PrependUint64Slot(0, id, 0)

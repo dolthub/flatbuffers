@@ -286,8 +286,10 @@ func (rcv *TypeAliases) MutateVf64(j int, n float64) bool {
 	return false
 }
 
+const TypeAliasesNumFields = 12
+
 func TypeAliasesStart(builder *flatbuffers.Builder) {
-	builder.StartObject(12)
+	builder.StartObject(TypeAliasesNumFields)
 }
 func TypeAliasesAddI8(builder *flatbuffers.Builder, i8 int8) {
 	builder.PrependInt8Slot(0, i8, 0)

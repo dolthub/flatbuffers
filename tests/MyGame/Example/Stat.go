@@ -94,8 +94,10 @@ func (rcv *Stat) MutateCount(n uint16) bool {
 	return rcv._tab.MutateUint16Slot(8, n)
 }
 
+const StatNumFields = 3
+
 func StatStart(builder *flatbuffers.Builder) {
-	builder.StartObject(3)
+	builder.StartObject(StatNumFields)
 }
 func StatAddId(builder *flatbuffers.Builder, id flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(id), 0)

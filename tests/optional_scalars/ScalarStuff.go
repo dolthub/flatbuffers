@@ -628,8 +628,10 @@ func (rcv *ScalarStuff) MutateDefaultEnum(n OptionalByte) bool {
 	return rcv._tab.MutateInt8Slot(74, int8(n))
 }
 
+const ScalarStuffNumFields = 36
+
 func ScalarStuffStart(builder *flatbuffers.Builder) {
-	builder.StartObject(36)
+	builder.StartObject(ScalarStuffNumFields)
 }
 func ScalarStuffAddJustI8(builder *flatbuffers.Builder, justI8 int8) {
 	builder.PrependInt8Slot(0, justI8, 0)

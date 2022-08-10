@@ -579,13 +579,22 @@ class GoGenerator : public BaseGenerator {
     code += "}\n";
   }
 
+  std::string NumFieldsConstant(const StructDef &struct_def) {
+    return namer_.Type(struct_def) + "NumFields";
+  }
+
+  void GetNumFieldsConstant(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "const " + NumFieldsConstant(struct_def) + " = " + NumToString(struct_def.fields.vec.size()) + "\n\n";
+  }
+
   // Get the value of a table's starting offset.
   void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "func " + namer_.Type(struct_def) + "Start";
     code += "(builder *flatbuffers.Builder) {\n";
     code += "\tbuilder.StartObject(";
-    code += NumToString(struct_def.fields.vec.size());
+    code += NumFieldsConstant(struct_def);
     code += ")\n}\n";
   }
 
@@ -769,6 +778,7 @@ class GoGenerator : public BaseGenerator {
 
   // Generate table constructors, conditioned on its members' types.
   void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
+    GetNumFieldsConstant(struct_def, code_ptr);
     GetStartOfTable(struct_def, code_ptr);
 
     for (auto it = struct_def.fields.vec.begin();

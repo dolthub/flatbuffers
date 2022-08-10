@@ -52,8 +52,10 @@ func (rcv *InParentNamespace) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
+const InParentNamespaceNumFields = 0
+
 func InParentNamespaceStart(builder *flatbuffers.Builder) {
-	builder.StartObject(0)
+	builder.StartObject(InParentNamespaceNumFields)
 }
 func InParentNamespaceEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

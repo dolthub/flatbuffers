@@ -19,6 +19,17 @@ func (t *Table) Offset(vtableOffset VOffsetT) VOffsetT {
 	return 0
 }
 
+// NumFields returns the number of fields encoded in this table's vtable.
+//
+// Does not include metadata fields, but only actual table fields.
+func (t *Table) NumFields() VOffsetT {
+	o := t.Offset(0)
+	if o == 0 {
+		return 0
+	}
+	return (o / SizeVOffsetT) - VtableMetadataFields
+}
+
 // Indirect retrieves the relative offset stored at `offset`.
 func (t *Table) Indirect(off UOffsetT) UOffsetT {
 	return off + GetUOffsetT(t.Bytes[off:])

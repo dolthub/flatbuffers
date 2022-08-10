@@ -67,8 +67,10 @@ func (rcv *TestSimpleTableWithEnum) MutateColor(n Color) bool {
 	return rcv._tab.MutateByteSlot(4, byte(n))
 }
 
+const TestSimpleTableWithEnumNumFields = 1
+
 func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(TestSimpleTableWithEnumNumFields)
 }
 func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color Color) {
 	builder.PrependByteSlot(0, byte(color), 2)

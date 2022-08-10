@@ -52,8 +52,10 @@ func (rcv *Monster) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
+const MonsterNumFields = 0
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(0)
+	builder.StartObject(MonsterNumFields)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

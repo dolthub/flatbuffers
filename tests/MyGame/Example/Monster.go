@@ -1386,8 +1386,10 @@ func (rcv *Monster) MutateLongEnumNormalDefault(n LongEnum) bool {
 	return rcv._tab.MutateUint64Slot(110, uint64(n))
 }
 
+const MonsterNumFields = 54
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(54)
+	builder.StartObject(MonsterNumFields)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
