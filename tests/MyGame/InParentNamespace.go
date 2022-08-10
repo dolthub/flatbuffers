@@ -10,7 +10,9 @@ type InParentNamespaceT struct {
 }
 
 func (t *InParentNamespaceT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	InParentNamespaceStart(builder)
 	return InParentNamespaceEnd(builder)
 }
@@ -19,7 +21,9 @@ func (rcv *InParentNamespace) UnPackTo(t *InParentNamespaceT) {
 }
 
 func (rcv *InParentNamespace) UnPack() *InParentNamespaceT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &InParentNamespaceT{}
 	rcv.UnPackTo(t)
 	return t
@@ -29,11 +33,31 @@ type InParentNamespace struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (*InParentNamespace, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &InParentNamespace{}
+	x.Init(buf, n+offset)
+	if InParentNamespaceNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &InParentNamespace{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (*InParentNamespace, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &InParentNamespace{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if InParentNamespaceNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
@@ -52,8 +76,10 @@ func (rcv *InParentNamespace) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
+const InParentNamespaceNumFields = 0
+
 func InParentNamespaceStart(builder *flatbuffers.Builder) {
-	builder.StartObject(0)
+	builder.StartObject(InParentNamespaceNumFields)
 }
 func InParentNamespaceEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

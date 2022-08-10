@@ -11,7 +11,9 @@ type TestSimpleTableWithEnumT struct {
 }
 
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	TestSimpleTableWithEnumStart(builder)
 	TestSimpleTableWithEnumAddColor(builder, t.Color)
 	return TestSimpleTableWithEnumEnd(builder)
@@ -22,7 +24,9 @@ func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
 }
 
 func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TestSimpleTableWithEnumT{}
 	rcv.UnPackTo(t)
 	return t
@@ -32,11 +36,31 @@ type TestSimpleTableWithEnum struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &TestSimpleTableWithEnum{}
+	x.Init(buf, n+offset)
+	if TestSimpleTableWithEnumNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TestSimpleTableWithEnum{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &TestSimpleTableWithEnum{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if TestSimpleTableWithEnumNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
@@ -67,8 +91,10 @@ func (rcv *TestSimpleTableWithEnum) MutateColor(n Color) bool {
 	return rcv._tab.MutateByteSlot(4, byte(n))
 }
 
+const TestSimpleTableWithEnumNumFields = 1
+
 func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(TestSimpleTableWithEnumNumFields)
 }
 func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color Color) {
 	builder.PrependByteSlot(0, byte(color), 2)
