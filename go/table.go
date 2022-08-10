@@ -1,5 +1,9 @@
 package flatbuffers
 
+import (
+	"errors"
+)
+
 // Table wraps a byte slice and provides read access to its data.
 //
 // The variable `Pos` indicates the root of the FlatBuffers object therein.
@@ -19,10 +23,14 @@ func (t *Table) Offset(vtableOffset VOffsetT) VOffsetT {
 	return 0
 }
 
+// Returned from TryGet...AsRoot functions when a table being read
+// has more fields than the generated code knows about.
+var ErrTableHasUnknownFields = errors.New("table has unknown fields")
+
 // NumFields returns the number of fields encoded in this table's vtable.
 //
 // Does not include metadata fields, but only actual table fields.
-func (t *Table) NumFields() VOffsetT {
+func (t Table) NumFields() VOffsetT {
 	o := t.Offset(0)
 	if o == 0 {
 		return 0

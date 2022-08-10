@@ -43,11 +43,31 @@ type Stat struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Stat{}
+	x.Init(buf, n+offset)
+	if StatNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Stat{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Stat{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if StatNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {

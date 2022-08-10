@@ -280,12 +280,17 @@ class GoGenerator : public BaseGenerator {
     const std::string size_prefix[] = { "", "SizePrefixed" };
     const std::string struct_type = namer_.Type(struct_def);
 
-    for (int i = 0; i < 2; i++) {
-      code += "func Get" + size_prefix[i] + "RootAs" + struct_type;
+    for (int i = 0; i < 4; i++) {
+      bool is_try = i%2 == 0;
+      code += (is_try ? "func TryGet" : "func Get") + size_prefix[i/2] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-      code += "*" + struct_type + "";
+      if (is_try) {
+        code += "(*" + struct_type + ", error)";
+      } else {
+        code += "*" + struct_type + "";
+      }
       code += " {\n";
-      if (i == 0) {
+      if (i/2 == 0) {
         code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
       } else {
         code +=
@@ -293,12 +298,17 @@ class GoGenerator : public BaseGenerator {
             "flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
       }
       code += "\tx := &" + struct_type + "{}\n";
-      if (i == 0) {
+      if (i/2 == 0) {
         code += "\tx.Init(buf, n+offset)\n";
       } else {
         code += "\tx.Init(buf, n+offset+flatbuffers.SizeUint32)\n";
       }
-      code += "\treturn x\n";
+      if (is_try) {
+        code += "\tif " + NumFieldsConstant(struct_def) + " < x.Table().NumFields() {\n\t\treturn nil, flatbuffers.ErrTableHasUnknownFields\n\t}\n";
+        code += "\treturn x, nil\n";
+      } else {
+        code += "\treturn x\n";
+      }
       code += "}\n\n";
     }
   }

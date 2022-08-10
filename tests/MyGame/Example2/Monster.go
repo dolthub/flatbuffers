@@ -33,11 +33,31 @@ type Monster struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Monster{}
+	x.Init(buf, n+offset)
+	if MonsterNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Monster{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Monster{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if MonsterNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {

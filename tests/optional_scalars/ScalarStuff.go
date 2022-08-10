@@ -165,11 +165,31 @@ type ScalarStuff struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) (*ScalarStuff, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &ScalarStuff{}
+	x.Init(buf, n+offset)
+	if ScalarStuffNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *ScalarStuff {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &ScalarStuff{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) (*ScalarStuff, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &ScalarStuff{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if ScalarStuffNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *ScalarStuff {

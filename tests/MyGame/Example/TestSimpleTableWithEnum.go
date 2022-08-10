@@ -36,11 +36,31 @@ type TestSimpleTableWithEnum struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &TestSimpleTableWithEnum{}
+	x.Init(buf, n+offset)
+	if TestSimpleTableWithEnumNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TestSimpleTableWithEnum{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &TestSimpleTableWithEnum{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if TestSimpleTableWithEnumNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {

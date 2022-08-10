@@ -36,11 +36,31 @@ type Referrable struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) (*Referrable, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Referrable{}
+	x.Init(buf, n+offset)
+	if ReferrableNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Referrable{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) (*Referrable, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Referrable{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if ReferrableNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {

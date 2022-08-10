@@ -33,11 +33,31 @@ type InParentNamespace struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (*InParentNamespace, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &InParentNamespace{}
+	x.Init(buf, n+offset)
+	if InParentNamespaceNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &InParentNamespace{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (*InParentNamespace, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &InParentNamespace{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if InParentNamespaceNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {

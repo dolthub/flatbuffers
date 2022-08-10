@@ -95,11 +95,31 @@ type TypeAliases struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) (*TypeAliases, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &TypeAliases{}
+	x.Init(buf, n+offset)
+	if TypeAliasesNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TypeAliases{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) (*TypeAliases, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &TypeAliases{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if TypeAliasesNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
