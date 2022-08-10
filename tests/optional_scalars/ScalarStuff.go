@@ -46,7 +46,9 @@ type ScalarStuffT struct {
 }
 
 func (t *ScalarStuffT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	ScalarStuffStart(builder)
 	ScalarStuffAddJustI8(builder, t.JustI8)
 	if t.MaybeI8 != nil {
@@ -151,7 +153,9 @@ func (rcv *ScalarStuff) UnPackTo(t *ScalarStuffT) {
 }
 
 func (rcv *ScalarStuff) UnPack() *ScalarStuffT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ScalarStuffT{}
 	rcv.UnPackTo(t)
 	return t

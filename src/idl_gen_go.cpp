@@ -926,7 +926,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
-    code += "\tif t == nil { return 0 }\n";
+    code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
@@ -1109,7 +1109,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (rcv *" + struct_type + ") UnPack() *" +
             NativeName(struct_def) + " {\n";
-    code += "\tif rcv == nil { return nil }\n";
+    code += "\tif rcv == nil {\n\t\treturn nil\n\t}\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
     code += "\trcv.UnPackTo(t)\n";
     code += "\treturn t\n";
