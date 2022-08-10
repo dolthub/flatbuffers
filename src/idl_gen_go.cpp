@@ -441,6 +441,22 @@ class GoGenerator : public BaseGenerator {
     code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
     code += "\t\treturn obj\n\t}\n\treturn nil\n";
     code += "}\n\n";
+
+    if (!field.value.type.struct_def->fixed) {
+      GenReceiver(struct_def, code_ptr);
+      code += " Try" + namer_.Function(field);
+      code += "(obj *";
+      code += TypeName(field);
+      code += ") (*" + TypeName(field) + ", error) " + OffsetPrefix(field);
+      code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
+      code += "\t\tif obj == nil {\n";
+      code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
+      code += "\t\t}\n";
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\tif " + NumFieldsConstant(*field.value.type.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn nil, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
+      code += "\t\treturn obj, nil\n\t}\n\treturn nil, nil\n";
+      code += "}\n\n";
+    }
   }
 
   // Get the value of a string.
@@ -489,6 +505,22 @@ class GoGenerator : public BaseGenerator {
     code += "\t\treturn true\n\t}\n";
     code += "\treturn false\n";
     code += "}\n\n";
+
+    if (!vectortype.struct_def->fixed) {
+      GenReceiver(struct_def, code_ptr);
+      code += " Try" + namer_.Function(field);
+      code += "(obj *" + TypeName(field);
+      code += ", j int) (bool, error) " + OffsetPrefix(field);
+      code += "\t\tx := rcv._tab.Vector(o)\n";
+      code += "\t\tx += flatbuffers.UOffsetT(j) * ";
+      code += NumToString(InlineSize(vectortype)) + "\n";
+      code += "\t\tx = rcv._tab.Indirect(x)\n";
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\tif " + NumFieldsConstant(*vectortype.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn false, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
+      code += "\t\treturn true, nil\n\t}\n";
+      code += "\treturn false, nil\n";
+      code += "}\n\n";
+    }
   }
 
   // Get the value of a vector's non-struct member.
@@ -589,13 +621,17 @@ class GoGenerator : public BaseGenerator {
     code += "}\n";
   }
 
-  std::string NumFieldsConstant(const StructDef &struct_def) {
+  std::string NumFieldsConstantName(const StructDef &struct_def) {
     return namer_.Type(struct_def) + "NumFields";
+  }
+
+  std::string NumFieldsConstant(const StructDef &struct_def) {
+    return WrapInNameSpaceAndTrack(struct_def.defined_namespace, NumFieldsConstantName(struct_def));
   }
 
   void GetNumFieldsConstant(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "const " + NumFieldsConstant(struct_def) + " = " + NumToString(struct_def.fields.vec.size()) + "\n\n";
+    code += "const " + NumFieldsConstantName(struct_def) + " = " + NumToString(struct_def.fields.vec.size()) + "\n\n";
   }
 
   // Get the value of a table's starting offset.
