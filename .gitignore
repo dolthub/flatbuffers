@@ -142,7 +142,6 @@ yarn-error.log
 .cmake/
 **/dist
 **/vendor
-**/go.sum
 flatbuffers.pc
 **/FlatBuffers.Test.Swift.xcodeproj
 **/html/**

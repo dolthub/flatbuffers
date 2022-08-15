@@ -32,8 +32,6 @@ test_dir="$(pwd)"
 # Developers may also wish to run benchmarks, which may be achieved with the
 # flag -test.bench and the wildcard regexp ".":
 #   go -test -test.bench=. ...
-CGO_ENABLED=0 go mod tidy
-git diff
 CGO_ENABLED=0 go test . \
                      --coverpkg=github.com/google/flatbuffers/go \
                      --cpp_data=${test_dir}/monsterdata_test.mon \
