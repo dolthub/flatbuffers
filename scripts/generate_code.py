@@ -157,12 +157,14 @@ PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
 PYTHON_OPTS = ["--python"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
+GO_OPTS = ["--go", "--go-namespace-module", "github.com/google/flatbuffers/tests"]
 
 # Basic Usage
 
 flatc(
     NO_INCL_OPTS
     + CPP_OPTS
+    + GO_OPTS
     + CS_OPTS
     + TS_OPTS
     + [
@@ -170,7 +172,6 @@ flatc(
         "--java",
         "--kotlin",
         "--dart",
-        "--go",
         "--lobster",
         "--php",
     ],

@@ -5,7 +5,7 @@ package Example
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	MyGame "MyGame"
+	MyGame "github.com/google/flatbuffers/tests/MyGame"
 )
 
 /// an example documentation comment: "monster object"

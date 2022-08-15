@@ -7,7 +7,7 @@ import (
 
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	MyGame__Example2 "MyGame/Example2"
+	MyGame__Example2 "github.com/google/flatbuffers/tests/MyGame/Example2"
 )
 
 type AnyUniqueAliases byte

@@ -17,10 +17,10 @@
 package main
 
 import (
-	mygame "MyGame"          // refers to generated code
-	example "MyGame/Example" // refers to generated code
+	mygame "github.com/google/flatbuffers/tests/MyGame"          // refers to generated code
+	example "github.com/google/flatbuffers/tests/MyGame/Example" // refers to generated code
 	"encoding/json"
-	optional_scalars "optional_scalars" // refers to generated code
+	optional_scalars "github.com/google/flatbuffers/tests/optional_scalars" // refers to generated code
 
 	"bytes"
 	"flag"

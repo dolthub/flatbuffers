@@ -147,6 +147,7 @@ const static FlatCOption options[] = {
     "Customize class suffix for C++ object-based API. Default Value is "
     "\"T\"." },
   { "", "go-namespace", "", "Generate the overriding namespace in Golang." },
+  { "", "go-namespace-module", "", "Generate imports of imported namespaces relative to this module." },
   { "", "go-import", "IMPORT",
     "Generate the overriding import for flatbuffers in Golang (default is "
     "\"github.com/google/flatbuffers/go\")." },
@@ -443,6 +444,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];
+      } else if (arg == "--go-namespace-module") {
+        if (++argi >= argc) Error("missing golang namespace" + arg, true);
+        opts.go_namespace_module = argv[argi];
       } else if (arg == "--go-import") {
         if (++argi >= argc) Error("missing golang import" + arg, true);
         opts.go_import = argv[argi];
