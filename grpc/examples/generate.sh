@@ -26,9 +26,9 @@ cd ${current_dir}
 
 # Looks for flatc within the root dir & debug
 if [ -e ${main_dir}/flatc ]; then
-  alias fbc='${main_dir}/flatc'
+  fbc="${main_dir}/flatc"
 elif [ -e ${main_dir}/Debug/flatc ]; then
-  alias fbc='${main_dir}/Debug/flatc'
+  fbc="${main_dir}/Debug/flatc"
 else
   echo 'flatc' could not be found. Make sure to build FlatBuffers from the \
        $rootdir directory.
@@ -41,7 +41,7 @@ generator="--grpc $current_dir/greeter.fbs"
 cd go
 
 cd greeter
-fbc --bfbs-filenames ../.. --go ${generator}
+"$fbc" --bfbs-filenames ../.. --go ${generator}
 
 cd ${current_dir}
 
@@ -50,7 +50,7 @@ cd python
 
 cd greeter
 
-fbc --bfbs-filenames ../.. --python ${generator}
+"$fbc" --bfbs-filenames ../.. --python ${generator}
 
 cd ${current_dir}
 
@@ -58,7 +58,7 @@ cd ${current_dir}
 cd swift
 
 cd Greeter/Sources/Model
-fbc --bfbs-filenames ../../../.. --swift --gen-json-emit ${generator}
+"$fbc" --bfbs-filenames ../../../.. --swift --gen-json-emit ${generator}
 
 cd ${current_dir}
 
@@ -66,6 +66,6 @@ cd ${current_dir}
 cd ts
 
 cd greeter/src
-fbc --bfbs-filenames ../../.. --ts ${generator}
+"$fbc" --bfbs-filenames ../../.. --ts ${generator}
 
 cd ${current_dir}

@@ -78,12 +78,13 @@ Namer::Config GoDefaultConfig() {
 class GoGenerator : public BaseGenerator {
  public:
   GoGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name, const std::string &go_namespace)
+              const std::string &file_name, const std::string &go_namespace, const std::string &go_namespace_module)
       : BaseGenerator(parser, path, file_name, "" /* not used*/,
                       "" /* not used */, "go"),
         cur_name_space_(nullptr),
         namer_(WithFlagOptions(GoDefaultConfig(), parser.opts, path),
-               GoKeywords()) {
+               GoKeywords()),
+        go_namespace_module_(go_namespace_module) {
     std::istringstream iss(go_namespace);
     std::string component;
     while (std::getline(iss, component, '.')) {
@@ -142,6 +143,7 @@ class GoGenerator : public BaseGenerator {
   Namespace go_namespace_;
   Namespace *cur_name_space_;
   const IdlNamer namer_;
+  const std::string go_namespace_module_;
 
   struct NamespacePtrLess {
     bool operator()(const Namespace *a, const Namespace *b) const {
@@ -1372,7 +1374,7 @@ class GoGenerator : public BaseGenerator {
 
   // Create the full path for the imported namespace (format: A/B/C).
   std::string NamespaceImportPath(const Namespace *ns) const {
-    return namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
+    return this->go_namespace_module_ + "/" + namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
   }
 
   // Ensure that a type is prefixed with its go package import name if it is
@@ -1403,7 +1405,7 @@ class GoGenerator : public BaseGenerator {
 
 bool GenerateGo(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
-  go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace);
+  go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace, parser.opts.go_namespace_module);
   return generator.generate();
 }
 

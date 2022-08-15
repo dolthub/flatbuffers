@@ -583,6 +583,7 @@ struct IDLOptions {
   bool binary_schema_gen_embed;
   std::string go_import;
   std::string go_namespace;
+  std::string go_namespace_module;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
