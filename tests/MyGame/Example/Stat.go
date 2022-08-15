@@ -43,37 +43,34 @@ type Stat struct {
 	_tab flatbuffers.Table
 }
 
-func TryGetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
+func InitStatRoot(o *Stat, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &Stat{}
-	x.Init(buf, n+offset)
-	if StatNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
+	o.Init(buf, n+offset)
+	if StatNumFields < o.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
 	}
-	return x, nil
+	return nil
+}
+
+func TryGetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
+	x := &Stat{}
+	return x, InitStatRoot(x, buf, offset)
 }
 
 func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Stat{}
-	x.Init(buf, n+offset)
+	InitStatRoot(x, buf, offset)
 	return x
 }
 
 func TryGetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Stat{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
-	if StatNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
-	}
-	return x, nil
+	return x, InitStatRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
 func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Stat{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	InitStatRoot(x, buf, offset+flatbuffers.SizeUint32)
 	return x
 }
 

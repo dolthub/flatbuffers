@@ -36,37 +36,34 @@ type TestSimpleTableWithEnum struct {
 	_tab flatbuffers.Table
 }
 
-func TryGetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
+func InitTestSimpleTableWithEnumRoot(o *TestSimpleTableWithEnum, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &TestSimpleTableWithEnum{}
-	x.Init(buf, n+offset)
-	if TestSimpleTableWithEnumNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
+	o.Init(buf, n+offset)
+	if TestSimpleTableWithEnumNumFields < o.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
 	}
-	return x, nil
+	return nil
+}
+
+func TryGetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
+	x := &TestSimpleTableWithEnum{}
+	return x, InitTestSimpleTableWithEnumRoot(x, buf, offset)
 }
 
 func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TestSimpleTableWithEnum{}
-	x.Init(buf, n+offset)
+	InitTestSimpleTableWithEnumRoot(x, buf, offset)
 	return x
 }
 
 func TryGetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TestSimpleTableWithEnum{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
-	if TestSimpleTableWithEnumNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
-	}
-	return x, nil
+	return x, InitTestSimpleTableWithEnumRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
 func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TestSimpleTableWithEnum{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	InitTestSimpleTableWithEnumRoot(x, buf, offset+flatbuffers.SizeUint32)
 	return x
 }
 
