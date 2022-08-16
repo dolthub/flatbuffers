@@ -10,37 +10,34 @@ type HelloRequest struct {
 	_tab flatbuffers.Table
 }
 
-func TryGetRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) (*HelloRequest, error) {
+func InitHelloRequestRoot(o *HelloRequest, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &HelloRequest{}
-	x.Init(buf, n+offset)
-	if HelloRequestNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
+	o.Init(buf, n+offset)
+	if HelloRequestNumFields < o.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
 	}
-	return x, nil
+	return nil
+}
+
+func TryGetRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) (*HelloRequest, error) {
+	x := &HelloRequest{}
+	return x, InitHelloRequestRoot(x, buf, offset)
 }
 
 func GetRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) *HelloRequest {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &HelloRequest{}
-	x.Init(buf, n+offset)
+	InitHelloRequestRoot(x, buf, offset)
 	return x
 }
 
 func TryGetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) (*HelloRequest, error) {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &HelloRequest{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
-	if HelloRequestNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
-	}
-	return x, nil
+	return x, InitHelloRequestRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
 func GetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) *HelloRequest {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &HelloRequest{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	InitHelloRequestRoot(x, buf, offset+flatbuffers.SizeUint32)
 	return x
 }
 

@@ -478,37 +478,34 @@ type Monster struct {
 	_tab flatbuffers.Table
 }
 
-func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
+func InitMonsterRoot(o *Monster, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &Monster{}
-	x.Init(buf, n+offset)
-	if MonsterNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
+	o.Init(buf, n+offset)
+	if MonsterNumFields < o.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
 	}
-	return x, nil
+	return nil
+}
+
+func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
+	x := &Monster{}
+	return x, InitMonsterRoot(x, buf, offset)
 }
 
 func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Monster{}
-	x.Init(buf, n+offset)
+	InitMonsterRoot(x, buf, offset)
 	return x
 }
 
 func TryGetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Monster{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
-	if MonsterNumFields < x.Table().NumFields() {
-		return nil, flatbuffers.ErrTableHasUnknownFields
-	}
-	return x, nil
+	return x, InitMonsterRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
 func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Monster{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	InitMonsterRoot(x, buf, offset+flatbuffers.SizeUint32)
 	return x
 }
 
