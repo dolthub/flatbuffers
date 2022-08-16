@@ -29,6 +29,8 @@ jobs:
       run: |
         chmod +x flatc
         ./flatc --version
+    - name: flatc tests
+      run: python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -166,8 +168,6 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
-   # Renable once it is working again.
-   if: false
    runs-on: ubuntu-latest
    steps:
    - uses: actions/checkout@v2
@@ -282,6 +282,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '>=1.19.0'
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
