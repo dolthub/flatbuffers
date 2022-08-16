@@ -63,7 +63,9 @@ type MonsterT struct {
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	nameOffset := builder.CreateString(t.Name)
 	inventoryOffset := flatbuffers.UOffsetT(0)
 	if t.Inventory != nil {
@@ -464,7 +466,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MonsterT{}
 	rcv.UnPackTo(t)
 	return t
@@ -474,11 +478,31 @@ type Monster struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Monster{}
+	x.Init(buf, n+offset)
+	if MonsterNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Monster{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Monster{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if MonsterNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
@@ -659,6 +683,21 @@ func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 	return false
 }
 
+func (rcv *Monster) TryTestarrayoftables(obj *Monster, j int) (bool, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		if MonsterNumFields < obj.Table().NumFields() {
+			return false, flatbuffers.ErrTableHasUnknownFields
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
 func (rcv *Monster) TestarrayoftablesLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
@@ -680,6 +719,22 @@ func (rcv *Monster) Enemy(obj *Monster) *Monster {
 		return obj
 	}
 	return nil
+}
+
+func (rcv *Monster) TryEnemy(obj *Monster) (*Monster, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
+	if o != 0 {
+		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		if obj == nil {
+			obj = new(Monster)
+		}
+		obj.Init(rcv._tab.Bytes, x)
+		if MonsterNumFields < obj.Table().NumFields() {
+			return nil, flatbuffers.ErrTableHasUnknownFields
+		}
+		return obj, nil
+	}
+	return nil, nil
 }
 
 func (rcv *Monster) Testnestedflatbuffer(j int) byte {
@@ -727,6 +782,22 @@ func (rcv *Monster) Testempty(obj *Stat) *Stat {
 		return obj
 	}
 	return nil
+}
+
+func (rcv *Monster) TryTestempty(obj *Stat) (*Stat, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(32))
+	if o != 0 {
+		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		if obj == nil {
+			obj = new(Stat)
+		}
+		obj.Init(rcv._tab.Bytes, x)
+		if StatNumFields < obj.Table().NumFields() {
+			return nil, flatbuffers.ErrTableHasUnknownFields
+		}
+		return obj, nil
+	}
+	return nil, nil
 }
 
 func (rcv *Monster) Testbool() bool {
@@ -1053,6 +1124,22 @@ func (rcv *Monster) ParentNamespaceTest(obj *MyGame.InParentNamespace) *MyGame.I
 	return nil
 }
 
+func (rcv *Monster) TryParentNamespaceTest(obj *MyGame.InParentNamespace) (*MyGame.InParentNamespace, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
+	if o != 0 {
+		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		if obj == nil {
+			obj = new(MyGame.InParentNamespace)
+		}
+		obj.Init(rcv._tab.Bytes, x)
+		if MyGame.InParentNamespaceNumFields < obj.Table().NumFields() {
+			return nil, flatbuffers.ErrTableHasUnknownFields
+		}
+		return obj, nil
+	}
+	return nil, nil
+}
+
 func (rcv *Monster) VectorOfReferrables(obj *Referrable, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
 	if o != 0 {
@@ -1063,6 +1150,21 @@ func (rcv *Monster) VectorOfReferrables(obj *Referrable, j int) bool {
 		return true
 	}
 	return false
+}
+
+func (rcv *Monster) TryVectorOfReferrables(obj *Referrable, j int) (bool, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		if ReferrableNumFields < obj.Table().NumFields() {
+			return false, flatbuffers.ErrTableHasUnknownFields
+		}
+		return true, nil
+	}
+	return false, nil
 }
 
 func (rcv *Monster) VectorOfReferrablesLength() int {
@@ -1121,6 +1223,21 @@ func (rcv *Monster) VectorOfStrongReferrables(obj *Referrable, j int) bool {
 		return true
 	}
 	return false
+}
+
+func (rcv *Monster) TryVectorOfStrongReferrables(obj *Referrable, j int) (bool, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		if ReferrableNumFields < obj.Table().NumFields() {
+			return false, flatbuffers.ErrTableHasUnknownFields
+		}
+		return true, nil
+	}
+	return false, nil
 }
 
 func (rcv *Monster) VectorOfStrongReferrablesLength() int {
@@ -1341,6 +1458,21 @@ func (rcv *Monster) ScalarKeySortedTables(obj *Stat, j int) bool {
 	return false
 }
 
+func (rcv *Monster) TryScalarKeySortedTables(obj *Stat, j int) (bool, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		if StatNumFields < obj.Table().NumFields() {
+			return false, flatbuffers.ErrTableHasUnknownFields
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
 func (rcv *Monster) ScalarKeySortedTablesLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
 	if o != 0 {
@@ -1386,8 +1518,10 @@ func (rcv *Monster) MutateLongEnumNormalDefault(n LongEnum) bool {
 	return rcv._tab.MutateUint64Slot(110, uint64(n))
 }
 
+const MonsterNumFields = 54
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(54)
+	builder.StartObject(MonsterNumFields)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)

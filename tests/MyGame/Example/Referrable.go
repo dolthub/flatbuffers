@@ -11,7 +11,9 @@ type ReferrableT struct {
 }
 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	ReferrableStart(builder)
 	ReferrableAddId(builder, t.Id)
 	return ReferrableEnd(builder)
@@ -22,7 +24,9 @@ func (rcv *Referrable) UnPackTo(t *ReferrableT) {
 }
 
 func (rcv *Referrable) UnPack() *ReferrableT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ReferrableT{}
 	rcv.UnPackTo(t)
 	return t
@@ -32,11 +36,31 @@ type Referrable struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) (*Referrable, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Referrable{}
+	x.Init(buf, n+offset)
+	if ReferrableNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Referrable{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) (*Referrable, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Referrable{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if ReferrableNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
@@ -67,8 +91,10 @@ func (rcv *Referrable) MutateId(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(4, n)
 }
 
+const ReferrableNumFields = 1
+
 func ReferrableStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(ReferrableNumFields)
 }
 func ReferrableAddId(builder *flatbuffers.Builder, id uint64) {
 	builder.PrependUint64Slot(0, id, 0)

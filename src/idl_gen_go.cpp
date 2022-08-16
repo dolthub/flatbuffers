@@ -282,12 +282,17 @@ class GoGenerator : public BaseGenerator {
     const std::string size_prefix[] = { "", "SizePrefixed" };
     const std::string struct_type = namer_.Type(struct_def);
 
-    for (int i = 0; i < 2; i++) {
-      code += "func Get" + size_prefix[i] + "RootAs" + struct_type;
+    for (int i = 0; i < 4; i++) {
+      bool is_try = i%2 == 0;
+      code += (is_try ? "func TryGet" : "func Get") + size_prefix[i/2] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-      code += "*" + struct_type + "";
+      if (is_try) {
+        code += "(*" + struct_type + ", error)";
+      } else {
+        code += "*" + struct_type + "";
+      }
       code += " {\n";
-      if (i == 0) {
+      if (i/2 == 0) {
         code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
       } else {
         code +=
@@ -295,12 +300,17 @@ class GoGenerator : public BaseGenerator {
             "flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
       }
       code += "\tx := &" + struct_type + "{}\n";
-      if (i == 0) {
+      if (i/2 == 0) {
         code += "\tx.Init(buf, n+offset)\n";
       } else {
         code += "\tx.Init(buf, n+offset+flatbuffers.SizeUint32)\n";
       }
-      code += "\treturn x\n";
+      if (is_try) {
+        code += "\tif " + NumFieldsConstant(struct_def) + " < x.Table().NumFields() {\n\t\treturn nil, flatbuffers.ErrTableHasUnknownFields\n\t}\n";
+        code += "\treturn x, nil\n";
+      } else {
+        code += "\treturn x\n";
+      }
       code += "}\n\n";
     }
   }
@@ -433,6 +443,22 @@ class GoGenerator : public BaseGenerator {
     code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
     code += "\t\treturn obj\n\t}\n\treturn nil\n";
     code += "}\n\n";
+
+    if (!field.value.type.struct_def->fixed) {
+      GenReceiver(struct_def, code_ptr);
+      code += " Try" + namer_.Function(field);
+      code += "(obj *";
+      code += TypeName(field);
+      code += ") (*" + TypeName(field) + ", error) " + OffsetPrefix(field);
+      code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
+      code += "\t\tif obj == nil {\n";
+      code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
+      code += "\t\t}\n";
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\tif " + NumFieldsConstant(*field.value.type.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn nil, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
+      code += "\t\treturn obj, nil\n\t}\n\treturn nil, nil\n";
+      code += "}\n\n";
+    }
   }
 
   // Get the value of a string.
@@ -481,6 +507,22 @@ class GoGenerator : public BaseGenerator {
     code += "\t\treturn true\n\t}\n";
     code += "\treturn false\n";
     code += "}\n\n";
+
+    if (!vectortype.struct_def->fixed) {
+      GenReceiver(struct_def, code_ptr);
+      code += " Try" + namer_.Function(field);
+      code += "(obj *" + TypeName(field);
+      code += ", j int) (bool, error) " + OffsetPrefix(field);
+      code += "\t\tx := rcv._tab.Vector(o)\n";
+      code += "\t\tx += flatbuffers.UOffsetT(j) * ";
+      code += NumToString(InlineSize(vectortype)) + "\n";
+      code += "\t\tx = rcv._tab.Indirect(x)\n";
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\tif " + NumFieldsConstant(*vectortype.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn false, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
+      code += "\t\treturn true, nil\n\t}\n";
+      code += "\treturn false, nil\n";
+      code += "}\n\n";
+    }
   }
 
   // Get the value of a vector's non-struct member.
@@ -581,13 +623,26 @@ class GoGenerator : public BaseGenerator {
     code += "}\n";
   }
 
+  std::string NumFieldsConstantName(const StructDef &struct_def) {
+    return namer_.Type(struct_def) + "NumFields";
+  }
+
+  std::string NumFieldsConstant(const StructDef &struct_def) {
+    return WrapInNameSpaceAndTrack(struct_def.defined_namespace, NumFieldsConstantName(struct_def));
+  }
+
+  void GetNumFieldsConstant(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "const " + NumFieldsConstantName(struct_def) + " = " + NumToString(struct_def.fields.vec.size()) + "\n\n";
+  }
+
   // Get the value of a table's starting offset.
   void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "func " + namer_.Type(struct_def) + "Start";
     code += "(builder *flatbuffers.Builder) {\n";
     code += "\tbuilder.StartObject(";
-    code += NumToString(struct_def.fields.vec.size());
+    code += NumFieldsConstant(struct_def);
     code += ")\n}\n";
   }
 
@@ -771,6 +826,7 @@ class GoGenerator : public BaseGenerator {
 
   // Generate table constructors, conditioned on its members' types.
   void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
+    GetNumFieldsConstant(struct_def, code_ptr);
     GetStartOfTable(struct_def, code_ptr);
 
     for (auto it = struct_def.fields.vec.begin();
@@ -918,7 +974,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
-    code += "\tif t == nil { return 0 }\n";
+    code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
@@ -1101,7 +1157,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (rcv *" + struct_type + ") UnPack() *" +
             NativeName(struct_def) + " {\n";
-    code += "\tif rcv == nil { return nil }\n";
+    code += "\tif rcv == nil {\n\t\treturn nil\n\t}\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
     code += "\trcv.UnPackTo(t)\n";
     code += "\treturn t\n";

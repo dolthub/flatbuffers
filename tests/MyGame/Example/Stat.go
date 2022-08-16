@@ -13,7 +13,9 @@ type StatT struct {
 }
 
 func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	idOffset := builder.CreateString(t.Id)
 	StatStart(builder)
 	StatAddId(builder, idOffset)
@@ -29,7 +31,9 @@ func (rcv *Stat) UnPackTo(t *StatT) {
 }
 
 func (rcv *Stat) UnPack() *StatT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StatT{}
 	rcv.UnPackTo(t)
 	return t
@@ -39,11 +43,31 @@ type Stat struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &Stat{}
+	x.Init(buf, n+offset)
+	if StatNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Stat{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Stat{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if StatNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
@@ -94,8 +118,10 @@ func (rcv *Stat) MutateCount(n uint16) bool {
 	return rcv._tab.MutateUint16Slot(8, n)
 }
 
+const StatNumFields = 3
+
 func StatStart(builder *flatbuffers.Builder) {
-	builder.StartObject(3)
+	builder.StartObject(StatNumFields)
 }
 func StatAddId(builder *flatbuffers.Builder, id flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(id), 0)
