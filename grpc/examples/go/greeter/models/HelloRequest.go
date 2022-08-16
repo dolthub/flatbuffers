@@ -10,11 +10,31 @@ type HelloRequest struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) (*HelloRequest, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &HelloRequest{}
+	x.Init(buf, n+offset)
+	if HelloRequestNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) *HelloRequest {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &HelloRequest{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) (*HelloRequest, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &HelloRequest{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if HelloRequestNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) *HelloRequest {
@@ -41,8 +61,10 @@ func (rcv *HelloRequest) Name() []byte {
 	return nil
 }
 
+const HelloRequestNumFields = 1
+
 func HelloRequestStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(HelloRequestNumFields)
 }
 func HelloRequestAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)

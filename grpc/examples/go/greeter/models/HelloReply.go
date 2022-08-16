@@ -10,11 +10,31 @@ type HelloReply struct {
 	_tab flatbuffers.Table
 }
 
+func TryGetRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) (*HelloReply, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := &HelloReply{}
+	x.Init(buf, n+offset)
+	if HelloReplyNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
+}
+
 func GetRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *HelloReply {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &HelloReply{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func TryGetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) (*HelloReply, error) {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &HelloReply{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	if HelloReplyNumFields < x.Table().NumFields() {
+		return nil, flatbuffers.ErrTableHasUnknownFields
+	}
+	return x, nil
 }
 
 func GetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *HelloReply {
@@ -41,8 +61,10 @@ func (rcv *HelloReply) Message() []byte {
 	return nil
 }
 
+const HelloReplyNumFields = 1
+
 func HelloReplyStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(HelloReplyNumFields)
 }
 func HelloReplyAddMessage(builder *flatbuffers.Builder, message flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(message), 0)
