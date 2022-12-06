@@ -3,6 +3,8 @@
 package Example
 
 import (
+	"bytes"
+	"math"
 	flatbuffers "github.com/google/flatbuffers/go"
 
 	MyGame "github.com/google/flatbuffers/tests/MyGame"
@@ -60,6 +62,14 @@ type MonsterT struct {
 	NativeInline *TestT `json:"native_inline"`
 	LongEnumNonEnumDefault LongEnum `json:"long_enum_non_enum_default"`
 	LongEnumNormalDefault LongEnum `json:"long_enum_normal_default"`
+	NanDefault float32 `json:"nan_default"`
+	InfDefault float32 `json:"inf_default"`
+	PositiveInfDefault float32 `json:"positive_inf_default"`
+	InfinityDefault float32 `json:"infinity_default"`
+	PositiveInfinityDefault float32 `json:"positive_infinity_default"`
+	NegativeInfDefault float32 `json:"negative_inf_default"`
+	NegativeInfinityDefault float32 `json:"negative_infinity_default"`
+	DoubleInfDefault float64 `json:"double_inf_default"`
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -322,6 +332,14 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddNativeInline(builder, nativeInlineOffset)
 	MonsterAddLongEnumNonEnumDefault(builder, t.LongEnumNonEnumDefault)
 	MonsterAddLongEnumNormalDefault(builder, t.LongEnumNormalDefault)
+	MonsterAddNanDefault(builder, t.NanDefault)
+	MonsterAddInfDefault(builder, t.InfDefault)
+	MonsterAddPositiveInfDefault(builder, t.PositiveInfDefault)
+	MonsterAddInfinityDefault(builder, t.InfinityDefault)
+	MonsterAddPositiveInfinityDefault(builder, t.PositiveInfinityDefault)
+	MonsterAddNegativeInfDefault(builder, t.NegativeInfDefault)
+	MonsterAddNegativeInfinityDefault(builder, t.NegativeInfinityDefault)
+	MonsterAddDoubleInfDefault(builder, t.DoubleInfDefault)
 	return MonsterEnd(builder)
 }
 
@@ -463,6 +481,14 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.NativeInline = rcv.NativeInline(nil).UnPack()
 	t.LongEnumNonEnumDefault = rcv.LongEnumNonEnumDefault()
 	t.LongEnumNormalDefault = rcv.LongEnumNormalDefault()
+	t.NanDefault = rcv.NanDefault()
+	t.InfDefault = rcv.InfDefault()
+	t.PositiveInfDefault = rcv.PositiveInfDefault()
+	t.InfinityDefault = rcv.InfinityDefault()
+	t.PositiveInfinityDefault = rcv.PositiveInfinityDefault()
+	t.NegativeInfDefault = rcv.NegativeInfDefault()
+	t.NegativeInfinityDefault = rcv.NegativeInfinityDefault()
+	t.DoubleInfDefault = rcv.DoubleInfDefault()
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -561,6 +587,38 @@ func (rcv *Monster) Name() []byte {
 		return rcv._tab.ByteVector(o + rcv._tab.Pos)
 	}
 	return nil
+}
+
+func MonsterKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	obj1 := &Monster{}
+	obj2 := &Monster{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	return string(obj1.Name()) < string(obj2.Name())
+}
+
+func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
+	start := flatbuffers.UOffsetT(0)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
+		obj := &Monster{}
+		obj.Init(buf, tableOffset)
+		bKey := []byte(key)
+		comp := bytes.Compare(obj.Name(), bKey)
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			rcv.Init(buf, tableOffset)
+			return true
+		}
+	}
+	return false
 }
 
 func (rcv *Monster) Inventory(j int) byte {
@@ -693,6 +751,15 @@ func (rcv *Monster) TryTestarrayoftables(obj *Monster, j int) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (rcv *Monster) TestarrayoftablesByKey(obj *Monster, key string) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
 }
 
 func (rcv *Monster) TestarrayoftablesLength() int {
@@ -1164,6 +1231,15 @@ func (rcv *Monster) TryVectorOfReferrables(obj *Referrable, j int) (bool, error)
 	return false, nil
 }
 
+func (rcv *Monster) VectorOfReferrablesByKey(obj *Referrable, key uint64) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
+}
+
 func (rcv *Monster) VectorOfReferrablesLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
 	if o != 0 {
@@ -1235,6 +1311,15 @@ func (rcv *Monster) TryVectorOfStrongReferrables(obj *Referrable, j int) (bool, 
 		return true, nil
 	}
 	return false, nil
+}
+
+func (rcv *Monster) VectorOfStrongReferrablesByKey(obj *Referrable, key uint64) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
 }
 
 func (rcv *Monster) VectorOfStrongReferrablesLength() int {
@@ -1470,6 +1555,15 @@ func (rcv *Monster) TryScalarKeySortedTables(obj *Stat, j int) (bool, error) {
 	return false, nil
 }
 
+func (rcv *Monster) ScalarKeySortedTablesByKey(obj *Stat, key uint16) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
+}
+
 func (rcv *Monster) ScalarKeySortedTablesLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
 	if o != 0 {
@@ -1515,7 +1609,103 @@ func (rcv *Monster) MutateLongEnumNormalDefault(n LongEnum) bool {
 	return rcv._tab.MutateUint64Slot(110, uint64(n))
 }
 
-const MonsterNumFields = 54
+func (rcv *Monster) NanDefault() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(112))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return float32(math.NaN())
+}
+
+func (rcv *Monster) MutateNanDefault(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(112, n)
+}
+
+func (rcv *Monster) InfDefault() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(114))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return float32(math.Inf(1))
+}
+
+func (rcv *Monster) MutateInfDefault(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(114, n)
+}
+
+func (rcv *Monster) PositiveInfDefault() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(116))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return float32(math.Inf(1))
+}
+
+func (rcv *Monster) MutatePositiveInfDefault(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(116, n)
+}
+
+func (rcv *Monster) InfinityDefault() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(118))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return float32(math.Inf(1))
+}
+
+func (rcv *Monster) MutateInfinityDefault(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(118, n)
+}
+
+func (rcv *Monster) PositiveInfinityDefault() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(120))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return float32(math.Inf(1))
+}
+
+func (rcv *Monster) MutatePositiveInfinityDefault(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(120, n)
+}
+
+func (rcv *Monster) NegativeInfDefault() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(122))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return float32(math.Inf(-1))
+}
+
+func (rcv *Monster) MutateNegativeInfDefault(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(122, n)
+}
+
+func (rcv *Monster) NegativeInfinityDefault() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(124))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return float32(math.Inf(-1))
+}
+
+func (rcv *Monster) MutateNegativeInfinityDefault(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(124, n)
+}
+
+func (rcv *Monster) DoubleInfDefault() float64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(126))
+	if o != 0 {
+		return rcv._tab.GetFloat64(o + rcv._tab.Pos)
+	}
+	return float64(math.Inf(1))
+}
+
+func (rcv *Monster) MutateDoubleInfDefault(n float64) bool {
+	return rcv._tab.MutateFloat64Slot(126, n)
+}
+
+const MonsterNumFields = 62
 
 func MonsterStart(builder *flatbuffers.Builder) {
 	builder.StartObject(MonsterNumFields)
@@ -1738,6 +1928,30 @@ func MonsterAddLongEnumNonEnumDefault(builder *flatbuffers.Builder, longEnumNonE
 }
 func MonsterAddLongEnumNormalDefault(builder *flatbuffers.Builder, longEnumNormalDefault LongEnum) {
 	builder.PrependUint64Slot(53, uint64(longEnumNormalDefault), 2)
+}
+func MonsterAddNanDefault(builder *flatbuffers.Builder, nanDefault float32) {
+	builder.PrependFloat32Slot(54, nanDefault, float32(math.NaN()))
+}
+func MonsterAddInfDefault(builder *flatbuffers.Builder, infDefault float32) {
+	builder.PrependFloat32Slot(55, infDefault, float32(math.Inf(1)))
+}
+func MonsterAddPositiveInfDefault(builder *flatbuffers.Builder, positiveInfDefault float32) {
+	builder.PrependFloat32Slot(56, positiveInfDefault, float32(math.Inf(1)))
+}
+func MonsterAddInfinityDefault(builder *flatbuffers.Builder, infinityDefault float32) {
+	builder.PrependFloat32Slot(57, infinityDefault, float32(math.Inf(1)))
+}
+func MonsterAddPositiveInfinityDefault(builder *flatbuffers.Builder, positiveInfinityDefault float32) {
+	builder.PrependFloat32Slot(58, positiveInfinityDefault, float32(math.Inf(1)))
+}
+func MonsterAddNegativeInfDefault(builder *flatbuffers.Builder, negativeInfDefault float32) {
+	builder.PrependFloat32Slot(59, negativeInfDefault, float32(math.Inf(-1)))
+}
+func MonsterAddNegativeInfinityDefault(builder *flatbuffers.Builder, negativeInfinityDefault float32) {
+	builder.PrependFloat32Slot(60, negativeInfinityDefault, float32(math.Inf(-1)))
+}
+func MonsterAddDoubleInfDefault(builder *flatbuffers.Builder, doubleInfDefault float64) {
+	builder.PrependFloat64Slot(61, doubleInfDefault, float64(math.Inf(1)))
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

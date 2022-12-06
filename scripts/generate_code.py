@@ -20,6 +20,7 @@ import glob
 import platform
 import shutil
 import subprocess
+import generate_grpc_examples
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
@@ -63,7 +64,7 @@ assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 # Specify the other paths that will be referenced
 tests_path = Path(root_path, "tests")
-swift_code_gen = Path(root_path, "tests/FlatBuffers.Test.Swift/CodeGenerationTests")
+swift_code_gen = Path(root_path, "tests/swift/tests/CodeGenerationTests")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
@@ -93,7 +94,7 @@ def flatc_reflection(options, location, target):
     new_reflection_path = Path(reflection_path, temp_dir, target)
     original_reflection_path = Path(root_path, location, target)
     if not filecmp.cmp(str(new_reflection_path), str(original_reflection_path)):
-        shutil.rmtree(str(original_reflection_path))
+        shutil.rmtree(str(original_reflection_path), ignore_errors=True)
         shutil.move(str(new_reflection_path), str(original_reflection_path))
     shutil.rmtree(str(Path(reflection_path, temp_dir)))
 
@@ -146,7 +147,7 @@ TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]
 SWIFT_OPTS = ["--swift", "--gen-json-emit", "--bfbs-filenames", str(tests_path)]
 SWIFT_OPTS_CODE_GEN = [
-    "--swift", 
+    "--swift",
     "--gen-json-emit",
     "--bfbs-filenames",
     swift_code_gen
@@ -157,7 +158,7 @@ PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
 PYTHON_OPTS = ["--python"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
-GO_OPTS = ["--go", "--go-namespace-module", "github.com/google/flatbuffers/tests"]
+GO_OPTS = ["--go", "--go-module-name", "github.com/google/flatbuffers/tests"]
 
 # Basic Usage
 
@@ -166,7 +167,6 @@ flatc(
     + CPP_OPTS
     + GO_OPTS
     + CS_OPTS
-    + TS_OPTS
     + [
         "--binary",
         "--java",
@@ -176,6 +176,29 @@ flatc(
         "--php",
     ],
     schema="monster_test.fbs",
+    include="include_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
+    NO_INCL_OPTS
+    + DART_OPTS,
+    schema="include_test/include_test1.fbs",
+    include="include_test/sub",
+)
+
+flatc(
+    NO_INCL_OPTS
+    + DART_OPTS,
+    schema="include_test/sub/include_test2.fbs",
+    include="include_test",
+)
+
+flatc(
+    NO_INCL_OPTS
+    + TS_OPTS,
+    schema="monster_test.fbs",
+    prefix="ts",
     include="include_test",
     data="monsterdata_test.json",
 )
@@ -226,7 +249,7 @@ flatc(
 # For Rust we currently generate two independent schemas, with namespace_test2
 # duplicating the types in namespace_test1
 flatc(
-    RUST_OPTS,
+    RUST_OPTS + CS_OPTS,
     prefix="namespace_test",
     schema=[
         "namespace_test/namespace_test1.fbs",
@@ -235,27 +258,43 @@ flatc(
 )
 
 flatc(
-    BASE_OPTS + CPP_OPTS + CS_OPTS + TS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
+    BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
     prefix="union_vector",
+    schema="union_vector/union_vector.fbs",
+)
+
+flatc(
+    BASE_OPTS + TS_OPTS,
+    prefix="ts/union_vector",
     schema="union_vector/union_vector.fbs",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings", "--gen-mutable"],
     include="include_test",
+    prefix="ts",
     schema="monster_test.fbs",
+)
+
+# Generate the complete flat file TS of monster.
+flatc(
+    ["--ts", "--gen-all", "--ts-flat-files"],
+    include="include_test",
+    schema="monster_test.fbs",
+    prefix="ts/ts-flat-files"
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["-b"],
     include="include_test",
+    prefix="ts",
     schema="monster_test.fbs",
     data="unicode_test.json",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings"],
-    prefix="union_vector",
+    prefix="ts/union_vector",
     schema="union_vector/union_vector.fbs",
 )
 
@@ -281,14 +320,14 @@ flatc(
 
 # Generate the annotated binary of the monster_test binary schema.
 flatc_annotate(
-    schema="../reflection/reflection.fbs", 
-    file="monster_test.bfbs", 
+    schema="../reflection/reflection.fbs",
+    file="monster_test.bfbs",
     include="include_test"
 )
 
 flatc_annotate(
-    schema="monster_test.fbs", 
-    file="monsterdata_test.mon", 
+    schema="monster_test.fbs",
+    file="monsterdata_test.mon",
     include="include_test"
 )
 
@@ -347,9 +386,16 @@ flatc(
 )
 
 
+flatc(
+    BASE_OPTS + PYTHON_OPTS,
+    schema="nested_union_test.fbs",
+)
+
+
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
-flatc(["--java", "--kotlin", "--lobster", "--ts"], schema=optional_scalars_schema)
+flatc(["--java", "--kotlin", "--lobster"], schema=optional_scalars_schema)
+flatc(TS_OPTS, schema=optional_scalars_schema, prefix="ts")
 
 flatc(["--csharp", "--python", "--gen-object-api"], schema=optional_scalars_schema)
 
@@ -387,7 +433,7 @@ dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
 # Swift Tests
-swift_prefix = "FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests"
+swift_prefix = "swift/tests/Tests/FlatBuffers.Test.SwiftTests"
 flatc(
     SWIFT_OPTS + BASE_OPTS + ["--grpc"],
     schema="monster_test.fbs",
@@ -401,6 +447,7 @@ flatc(
 )
 flatc(SWIFT_OPTS, schema="optional_scalars.fbs", prefix=swift_prefix)
 flatc(SWIFT_OPTS, schema="vector_has_test.fbs", prefix=swift_prefix)
+flatc(SWIFT_OPTS, schema="nan_inf_test.fbs", prefix=swift_prefix)
 flatc(
     SWIFT_OPTS + ["--gen-object-api"],
     schema="more_defaults.fbs",
@@ -423,6 +470,13 @@ flatc(
     schema="test_no_include.fbs",
     cwd=swift_code_gen
 )
+
+# Nim Tests
+NIM_OPTS = BASE_OPTS + ["--nim"]
+flatc(NIM_OPTS, schema="monster_test.fbs", include="include_test")
+flatc(NIM_OPTS, schema="optional_scalars.fbs")
+flatc(NIM_OPTS, schema="more_defaults.fbs")
+flatc(NIM_OPTS, schema="MutatingBool.fbs")
 
 # --filename-suffix and --filename-ext tests
 flatc(
@@ -507,3 +561,6 @@ def flatc_annotate(schema, include=None, data=None, cwd=tests_path):
 flatc_annotate(
     schema="monster_test.fbs", include="include_test", data="monsterdata_test.mon"
 )
+
+# Run the generate_grpc_examples script
+generate_grpc_examples.GenerateGRPCExamples()

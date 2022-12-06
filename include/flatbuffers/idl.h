@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_IDL_H_
 #define FLATBUFFERS_IDL_H_
 
+#include <algorithm>
 #include <functional>
 #include <map>
 #include <memory>
@@ -382,7 +383,14 @@ struct EnumVal {
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder,
                                         const Parser &parser) const;
 
-  bool Deserialize(const Parser &parser, const reflection::EnumVal *val);
+  bool Deserialize(Parser &parser, const reflection::EnumVal *val);
+
+  flatbuffers::Offset<
+      flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
+  SerializeAttributes(FlatBufferBuilder *builder, const Parser &parser) const;
+
+  bool DeserializeAttributes(Parser &parser,
+                             const Vector<Offset<reflection::KeyValue>> *attrs);
 
   uint64_t GetAsUInt64() const { return static_cast<uint64_t>(value); }
   int64_t GetAsInt64() const { return value; }
@@ -392,6 +400,7 @@ struct EnumVal {
   std::string name;
   std::vector<std::string> doc_comment;
   Type union_type;
+  SymbolTable<Value> attributes;
 
  private:
   friend EnumDef;
@@ -464,6 +473,14 @@ inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
 }
 
+inline bool IsIncompleteStruct(const Type &type) {
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->predecl;
+}
+
+inline bool IsTable(const Type &type) {
+  return type.base_type == BASE_TYPE_STRUCT && !type.struct_def->fixed;
+}
+
 inline bool IsUnion(const Type &type) {
   return type.enum_def != nullptr && type.enum_def->is_union;
 }
@@ -474,6 +491,14 @@ inline bool IsUnionType(const Type &type) {
 
 inline bool IsVector(const Type &type) {
   return type.base_type == BASE_TYPE_VECTOR;
+}
+
+inline bool IsVectorOfStruct(const Type &type) {
+  return IsVector(type) && IsStruct(type.VectorType());
+}
+
+inline bool IsVectorOfTable(const Type &type) {
+  return IsVector(type) && IsTable(type.VectorType());
 }
 
 inline bool IsArray(const Type &type) {
@@ -516,8 +541,11 @@ inline bool operator!=(const EnumVal &lhs, const EnumVal &rhs) {
 inline bool EqualByName(const Type &a, const Type &b) {
   return a.base_type == b.base_type && a.element == b.element &&
          (a.struct_def == b.struct_def ||
-          a.struct_def->name == b.struct_def->name) &&
-         (a.enum_def == b.enum_def || a.enum_def->name == b.enum_def->name);
+          (a.struct_def != nullptr && b.struct_def != nullptr &&
+           a.struct_def->name == b.struct_def->name)) &&
+         (a.enum_def == b.enum_def ||
+          (a.enum_def != nullptr && b.enum_def != nullptr &&
+           a.enum_def->name == b.enum_def->name));
 }
 
 struct RPCCall : public Definition {
@@ -537,6 +565,24 @@ struct ServiceDef : public Definition {
   SymbolTable<RPCCall> calls;
 };
 
+struct IncludedFile {
+  // The name of the schema file being included, as defined in the .fbs file.
+  // This includes the prefix (e.g., include "foo/bar/baz.fbs" would mean this
+  // value is "foo/bar/baz.fbs").
+  std::string schema_name;
+
+  // The filename of where the included file was found, after searching the
+  // relative paths plus any other paths included with `flatc -I ...`. Note,
+  // while this is sometimes the same as schema_name, it is not always, since it
+  // can be defined relative to where flatc was invoked.
+  std::string filename;
+};
+
+// Since IncludedFile is contained within a std::set, need to provide ordering.
+inline bool operator<(const IncludedFile &a, const IncludedFile &b) {
+  return a.filename < b.filename;
+}
+
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
   // field case style options for C++
@@ -548,6 +594,7 @@ struct IDLOptions {
   bool strict_json;
   bool output_default_scalars_in_json;
   int indent_step;
+  bool cpp_minify_enums;
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool scoped_enums;
@@ -583,7 +630,7 @@ struct IDLOptions {
   bool binary_schema_gen_embed;
   std::string go_import;
   std::string go_namespace;
-  std::string go_namespace_module;
+  std::string go_module_name;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
@@ -605,6 +652,7 @@ struct IDLOptions {
   bool json_nested_legacy_flatbuffers;
   bool ts_flat_file;
   bool no_leak_private_annotations;
+  bool require_json_eof;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -624,6 +672,7 @@ struct IDLOptions {
     kRust = 1 << 14,
     kKotlin = 1 << 15,
     kSwift = 1 << 16,
+    kNim = 1 << 17,
     kMAX
   };
 
@@ -658,6 +707,7 @@ struct IDLOptions {
         strict_json(false),
         output_default_scalars_in_json(false),
         indent_step(2),
+        cpp_minify_enums(false),
         output_enum_identifiers(true),
         prefixed_enums(true),
         scoped_enums(false),
@@ -705,6 +755,7 @@ struct IDLOptions {
         json_nested_legacy_flatbuffers(false),
         ts_flat_file(false),
         no_leak_private_annotations(false),
+        require_json_eof(true),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         rust_serialize(false),
@@ -717,7 +768,8 @@ struct IDLOptions {
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
   ParserState()
-      : cursor_(nullptr),
+      : prev_cursor_(nullptr),
+        cursor_(nullptr),
         line_start_(nullptr),
         line_(0),
         token_(-1),
@@ -725,6 +777,7 @@ struct ParserState {
 
  protected:
   void ResetState(const char *source) {
+    prev_cursor_ = source;
     cursor_ = source;
     line_ = 0;
     MarkNewLine();
@@ -739,7 +792,8 @@ struct ParserState {
     FLATBUFFERS_ASSERT(cursor_ && line_start_ && cursor_ >= line_start_);
     return static_cast<int64_t>(cursor_ - line_start_);
   }
-
+  
+  const char *prev_cursor_;
   const char *cursor_;
   const char *line_start_;
   int line_;  // the current line being parsed
@@ -867,6 +921,9 @@ class Parser : public ParserState {
 
   bool ParseJson(const char *json, const char *json_filename = nullptr);
 
+  // Returns the number of characters were consumed when parsing a JSON string.
+  std::ptrdiff_t BytesConsumed() const;
+
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
 
@@ -915,7 +972,7 @@ class Parser : public ParserState {
   // Get the set of included files that are directly referenced by the file
   // being parsed. This does not include files that are transitively included by
   // others includes.
-  std::vector<std::string> GetIncludedFiles() const;
+  std::vector<IncludedFile> GetIncludedFiles() const;
 
  private:
   class ParseDepthGuard;
@@ -987,6 +1044,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseService(const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
+  FLATBUFFERS_CHECKED_ERROR ParseProtoMapField(StructDef *struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
   FLATBUFFERS_CHECKED_ERROR ParseProtoKey();
   FLATBUFFERS_CHECKED_ERROR ParseProtoDecl();
@@ -1044,7 +1102,7 @@ class Parser : public ParserState {
   std::string file_extension_;
 
   std::map<uint64_t, std::string> included_files_;
-  std::map<std::string, std::set<std::string>> files_included_per_file_;
+  std::map<std::string, std::set<IncludedFile>> files_included_per_file_;
   std::vector<std::string> native_included_files_;
 
   std::map<std::string, bool> known_attributes_;

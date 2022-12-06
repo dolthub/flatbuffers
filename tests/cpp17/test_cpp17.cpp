@@ -47,6 +47,7 @@ using ::cpp17::MyGame::Example::Vec3;
 /*******************************************************************************
 ** Build some FB objects.
 *******************************************************************************/
+namespace {
 const Monster *BuildMonster(flatbuffers::FlatBufferBuilder &fbb) {
   using ::cpp17::MyGame::Example::Color;
   using ::cpp17::MyGame::Example::MonsterBuilder;
@@ -145,6 +146,16 @@ void StringifyAnyFlatbuffersTypeTest() {
         any_unique_type = 0
         any_ambiguous_type = 0
         signed_enum = -1
+        long_enum_non_enum_default = 0
+        long_enum_normal_default = 2
+        nan_default = nan
+        inf_default = inf
+        positive_inf_default = inf
+        infinity_default = inf
+        positive_infinity_default = inf
+        negative_inf_default = -inf
+        negative_infinity_default = -inf
+        double_inf_default = inf
       })";
 
   // Call a generic function that has no specific knowledge of the flatbuffer we
@@ -250,6 +261,7 @@ int FlatBufferCpp17Tests() {
   StringifyAnyFlatbuffersTypeTest();
   return 0;
 }
+}  // namespace
 
 int main(int /*argc*/, const char * /*argv*/[]) {
   InitTestEngine();

@@ -226,7 +226,7 @@ class CSharpGenerator : public BaseGenerator {
     if (needs_includes) {
       code += "using global::System;\n";
       code += "using global::System.Collections.Generic;\n";
-      code += "using global::FlatBuffers;\n\n";
+      code += "using global::Google.FlatBuffers;\n\n";
     }
     code += classcode;
     if (!namespace_name.empty()) { code += "\n}\n"; }
@@ -651,11 +651,11 @@ class CSharpGenerator : public BaseGenerator {
     code += "  public ByteBuffer ByteBuffer { get { return __p.bb; } }\n";
 
     if (!struct_def.fixed) {
-      // Generate verson check method.
+      // Generate version check method.
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_2_0_0(); ";
+      code += "FLATBUFFERS_22_11_23(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1307,9 +1307,9 @@ class CSharpGenerator : public BaseGenerator {
       code += "Offset<" + struct_def.name + ">";
       code += "[] offsets) {\n";
       code += "    Array.Sort(offsets,\n";
-      code += "      (Offset<" + struct_def.name +
-              "> o1, Offset<" + struct_def.name + "> o2) =>\n";
-      code += "        "+ GenKeyGetter(struct_def, key_field);
+      code += "      (Offset<" + struct_def.name + "> o1, Offset<" +
+              struct_def.name + "> o2) =>\n";
+      code += "        " + GenKeyGetter(struct_def, key_field);
       code += ");\n";
       code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
 
@@ -1425,20 +1425,23 @@ class CSharpGenerator : public BaseGenerator {
       code += "public ";
     }
     auto union_name = enum_def.name + "Union";
+    auto class_member = std::string("Value");
+    if (class_member == enum_def.name) { class_member += "_"; };
     code += "class " + union_name + " {\n";
     // Type
     code += "  public " + enum_def.name + " Type { get; set; }\n";
     // Value
-    code += "  public object Value { get; set; }\n";
+    code += "  public object " + class_member +  " { get; set; }\n";
     code += "\n";
     // Constructor
     code += "  public " + union_name + "() {\n";
     code += "    this.Type = " + enum_def.name + "." +
             enum_def.Vals()[0]->name + ";\n";
-    code += "    this.Value = null;\n";
+    code += "    this." + class_member + " = null;\n";
     code += "  }\n\n";
     // As<T>
-    code += "  public T As<T>() where T : class { return this.Value as T; }\n";
+    code += "  public T As<T>() where T : class { return this." + class_member +
+            " as T; }\n";
     // As, From
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
@@ -1459,12 +1462,15 @@ class CSharpGenerator : public BaseGenerator {
       code += "  " + accessibility + " static " + union_name + " From" +
               ev.name + "(" + type_name + " _" + lower_ev_name +
               ") { return new " + union_name + "{ Type = " + Name(enum_def) +
-              "." + Name(ev) + ", Value = _" + lower_ev_name + " }; }\n";
+              "." + Name(ev) + ", " + class_member + " = _" + lower_ev_name +
+              " }; }\n";
     }
     code += "\n";
     // Pack()
-    code += "  public static int Pack(FlatBuffers.FlatBufferBuilder builder, " +
-            union_name + " _o) {\n";
+    code +=
+        "  public static int Pack(Google.FlatBuffers.FlatBufferBuilder "
+        "builder, " +
+        union_name + " _o) {\n";
     code += "    switch (_o.Type) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
@@ -1579,6 +1585,8 @@ class CSharpGenerator : public BaseGenerator {
                                 bool is_vector) const {
     auto &code = *code_ptr;
     std::string varialbe_name = "_o." + camel_name;
+    std::string class_member = "Value";
+    if (class_member == camel_name) class_member += "_";
     std::string type_suffix = "";
     std::string func_suffix = "()";
     std::string indent = "    ";
@@ -1606,7 +1614,8 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += indent + "  case " + NamespacedName(enum_def) + "." + ev.name +
                 ":\n";
-        code += indent + "    " + varialbe_name + ".Value = this." + camel_name;
+        code += indent + "    " + varialbe_name + "." + class_member +
+                " = this." + camel_name;
         if (IsString(ev.union_type)) {
           code += "AsString" + func_suffix + ";\n";
         } else {

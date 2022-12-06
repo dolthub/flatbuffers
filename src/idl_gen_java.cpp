@@ -25,7 +25,9 @@
 namespace flatbuffers {
 namespace java {
 
-Namer::Config JavaDefaultConfig() {
+namespace {
+
+static Namer::Config JavaDefaultConfig() {
   return {
     /*types=*/Case::kKeep,
     /*constants=*/Case::kScreamingSnake,
@@ -50,7 +52,7 @@ Namer::Config JavaDefaultConfig() {
   };
 }
 
-std::set<std::string> JavaKeywords() {
+static std::set<std::string> JavaKeywords() {
   return {
     "abstract", "continue", "for",        "new",       "switch",
     "assert",   "default",  "goto",       "package",   "synchronized",
@@ -65,15 +67,17 @@ std::set<std::string> JavaKeywords() {
   };
 }
 
-static TypedFloatConstantGenerator JavaFloatGen("Double.", "Float.", "NaN",
+static const TypedFloatConstantGenerator JavaFloatGen("Double.", "Float.", "NaN",
                                                 "POSITIVE_INFINITY",
                                                 "NEGATIVE_INFINITY");
 
-static CommentConfig comment_config = {
+static const CommentConfig comment_config = {
   "/**",
   " *",
   " */",
 };
+
+} // namespace
 
 class JavaGenerator : public BaseGenerator {
   struct FieldArrayLength {
@@ -174,8 +178,20 @@ class JavaGenerator : public BaseGenerator {
     }
     if (needs_includes) {
       code +=
-          "import java.nio.*;\nimport java.lang.*;\nimport "
-          "java.util.*;\nimport com.google.flatbuffers.*;\n";
+          "import com.google.flatbuffers.BaseVector;\n"
+          "import com.google.flatbuffers.BooleanVector;\n"
+          "import com.google.flatbuffers.ByteVector;\n"
+          "import com.google.flatbuffers.Constants;\n"
+          "import com.google.flatbuffers.DoubleVector;\n"
+          "import com.google.flatbuffers.FlatBufferBuilder;\n"
+          "import com.google.flatbuffers.FloatVector;\n"
+          "import com.google.flatbuffers.LongVector;\n"
+          "import com.google.flatbuffers.StringVector;\n"
+          "import com.google.flatbuffers.Struct;\n"
+          "import com.google.flatbuffers.Table;\n"
+          "import com.google.flatbuffers.UnionVector;\n"
+          "import java.nio.ByteBuffer;\n"
+          "import java.nio.ByteOrder;\n";
       if (parser_.opts.gen_nullable) {
         code += "\nimport javax.annotation.Nullable;\n";
       }
@@ -393,6 +409,10 @@ class JavaGenerator : public BaseGenerator {
       code += " ";
       code += namer_.Variant(ev) + " = ";
       code += enum_def.ToString(ev);
+      if (enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
+          enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
+        code += "L";
+      }
       code += ";\n";
     }
 
@@ -657,11 +677,11 @@ class JavaGenerator : public BaseGenerator {
     code += " {\n";
 
     if (!struct_def.fixed) {
-      // Generate verson check method.
+      // Generate version check method.
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_2_0_0(); ";
+      code += "FLATBUFFERS_22_11_23(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1654,11 +1674,15 @@ class JavaGenerator : public BaseGenerator {
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
                           "(" + variable + "[_j]);"
-                    : type_name + ".pack(builder, " + variable + "[_j]);";
+                    : "_unused_offset = " + type_name + ".pack(builder, " +
+                          variable + "[_j]);";
             code += "    int _" + field_name + " = 0;\n";
             code += "    " + element_type_name + "[] " + variable + " = _o." +
                     get_field + "();\n";
             code += "    if (" + variable + " != null) {\n";
+            if (field.value.type.struct_def != nullptr) {
+              code += "      int _unused_offset = 0;\n";
+            }
             code += "      " + namer_.Method("start", field) +
                     "Vector(builder, " + variable + ".length);\n";
             code += "      for (int _j = " + variable +
@@ -1881,6 +1905,7 @@ class JavaGenerator : public BaseGenerator {
           }
         } else {
           code += " " + name + " = ";
+          code += SourceCast(field_type);
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
             code += "." + namer_.Method("get", array_lengths[i].name) + "()";

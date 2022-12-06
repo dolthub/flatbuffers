@@ -2,10 +2,20 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
-import com.google.flatbuffers.*;
+import com.google.flatbuffers.BaseVector;
+import com.google.flatbuffers.BooleanVector;
+import com.google.flatbuffers.ByteVector;
+import com.google.flatbuffers.Constants;
+import com.google.flatbuffers.DoubleVector;
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.FloatVector;
+import com.google.flatbuffers.LongVector;
+import com.google.flatbuffers.StringVector;
+import com.google.flatbuffers.Struct;
+import com.google.flatbuffers.Table;
+import com.google.flatbuffers.UnionVector;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class StructOfStructsOfStructs extends Struct {
@@ -47,12 +57,12 @@ public final class StructOfStructsOfStructs extends Struct {
   }
   public static int pack(FlatBufferBuilder builder, StructOfStructsOfStructsT _o) {
     if (_o == null) return 0;
-    int _a_a_id = _o.getA().getA().getId();
-    int _a_a_distance = _o.getA().getA().getDistance();
+    int _a_a_id = (int) _o.getA().getA().getId();
+    int _a_a_distance = (int) _o.getA().getA().getDistance();
     short _a_b_a = _o.getA().getB().getA();
     byte _a_b_b = _o.getA().getB().getB();
-    int _a_c_id = _o.getA().getC().getId();
-    int _a_c_distance = _o.getA().getC().getDistance();
+    int _a_c_id = (int) _o.getA().getC().getId();
+    int _a_c_distance = (int) _o.getA().getC().getDistance();
     return createStructOfStructsOfStructs(
       builder,
       _a_a_id,

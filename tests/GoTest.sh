@@ -18,12 +18,9 @@ pushd "$(dirname $0)" >/dev/null
 test_dir="$(pwd)"
 
 # Emit Go code for the example schemas in the test dir:
-../flatc \
-  -g --gen-object-api \
-  -I include_test \
-  --go-namespace-module github.com/google/flatbuffers/tests \
-  monster_test.fbs \
-  optional_scalars.fbs
+../flatc -g --gen-object-api -I include_test --go-module-name github.com/google/flatbuffers/tests monster_test.fbs optional_scalars.fbs
+../flatc -g --gen-object-api -I include_test/sub --go-module-name github.com/google/flatbuffers/tests include_test/order.fbs
+../flatc -g --gen-object-api --go-module-name github.com/google/flatbuffers/tests -o Pizza include_test/sub/no_namespace.fbs
 
 # Run tests with necessary flags.
 # Developers may wish to see more detail by appending the verbosity flag
@@ -50,7 +47,7 @@ else
     exit 1
 fi
 
-NOT_FMT_FILES=$(gofmt -l MyGame)
+NOT_FMT_FILES=$(gofmt -l .)
 if [[ ${NOT_FMT_FILES} != "" ]]; then
     echo "These files are not well gofmt'ed:"
     echo
@@ -58,3 +55,6 @@ if [[ ${NOT_FMT_FILES} != "" ]]; then
     # enable this when enums are properly formated
     # exit 1
 fi
+
+# Re-enable go modules when done tests
+go env -w  GO111MODULE=on

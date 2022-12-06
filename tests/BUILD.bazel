@@ -1,6 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("//:build_defs.bzl", "flatbuffer_cc_library")
-load("//:typescript.bzl", "flatbuffer_ts_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -9,26 +8,55 @@ cc_test(
     name = "flatbuffers_test",
     testonly = 1,
     srcs = [
+        "alignment_test.cpp",
+        "alignment_test.h",
+        "alignment_test_generated.h",
+        "evolution_test.cpp",
+        "evolution_test.h",
         "evolution_test/evolution_v1_generated.h",
         "evolution_test/evolution_v2_generated.h",
+        "flexbuffers_test.cpp",
+        "flexbuffers_test.h",
+        "fuzz_test.cpp",
+        "fuzz_test.h",
+        "is_quiet_nan.h",
+        "json_test.cpp",
+        "json_test.h",
+        "key_field/key_field_sample_generated.h",
+        "key_field_test.cpp",
+        "key_field_test.h",
+        "monster_test.cpp",
+        "monster_test.h",
         "monster_test_bfbs_generated.h",
         "namespace_test/namespace_test1_generated.h",
         "namespace_test/namespace_test2_generated.h",
+        "native_inline_table_test_generated.h",
         "native_type_test_impl.cpp",
         "native_type_test_impl.h",
         "optional_scalars_generated.h",
+        "optional_scalars_test.cpp",
+        "optional_scalars_test.h",
+        "parser_test.cpp",
+        "parser_test.h",
+        "proto_test.cpp",
+        "proto_test.h",
+        "reflection_test.cpp",
+        "reflection_test.h",
         "test.cpp",
         "test_assert.cpp",
         "test_assert.h",
         "test_builder.cpp",
         "test_builder.h",
         "union_vector/union_vector_generated.h",
+        "util_test.cpp",
+        "util_test.h",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
         "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
+        ":alignment_test.fbs",
         ":arrays_test.bfbs",
         ":arrays_test.fbs",
         ":arrays_test.golden",
@@ -38,6 +66,7 @@ cc_test(
         ":evolution_test/evolution_v2.json",
         ":include_test/include_test1.fbs",
         ":include_test/sub/include_test2.fbs",
+        ":key_field/key_field_sample.fbs",
         ":monster_extra.fbs",
         ":monster_test.bfbs",
         ":monster_test.fbs",
@@ -69,6 +98,7 @@ cc_test(
         "include/",
     ],
     deps = [
+        ":alignment_test_cc_fbs",
         ":arrays_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
@@ -194,11 +224,7 @@ flatbuffer_cc_library(
     ],
 )
 
-flatbuffer_ts_library(
-    name = "typescript_ts_fbs",
-    srcs = ["typescript_keywords.fbs"],
-    deps = [
-        "//tests/test_dir:include_ts_fbs",
-        "//tests/test_dir:typescript_transitive_ts_fbs",
-    ],
+flatbuffer_cc_library(
+    name = "alignment_test_cc_fbs",
+    srcs = ["alignment_test.fbs"],
 )

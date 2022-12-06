@@ -16,6 +16,8 @@
 
 #include "flatbuffers/flatc.h"
 
+#include <algorithm>
+#include <limits>
 #include <list>
 #include <sstream>
 
@@ -25,7 +27,7 @@
 
 namespace flatbuffers {
 
-const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
+static const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,
@@ -88,7 +90,7 @@ const static FlatCOption options[] = {
     "--no-prefix." },
   { "", "swift-implementation-only", "",
     "Adds a @_implementationOnly to swift imports" },
-  { "", "gen-inclues", "",
+  { "", "gen-includes", "",
     "(deprecated), this is the default behavior. If the original behavior is "
     "required (no include statements) use --no-includes." },
   { "", "no-includes", "",
@@ -147,10 +149,11 @@ const static FlatCOption options[] = {
     "Customize class suffix for C++ object-based API. Default Value is "
     "\"T\"." },
   { "", "go-namespace", "", "Generate the overriding namespace in Golang." },
-  { "", "go-namespace-module", "", "Generate imports of imported namespaces relative to this module." },
   { "", "go-import", "IMPORT",
     "Generate the overriding import for flatbuffers in Golang (default is "
     "\"github.com/google/flatbuffers/go\")." },
+  { "", "go-module-name", "",
+    "Prefix local import paths of generated go code with the module name" },
   { "", "raw-binary", "",
     "Allow binaries without file_identifier to be read. This may crash flatc "
     "given a mismatched schema." },
@@ -216,14 +219,14 @@ const static FlatCOption options[] = {
     "Allows (de)serialization of JSON text in the Object API. (requires "
     "--gen-object-api)." },
   { "", "json-nested-bytes", "",
-    "Allow a nested_flatbuffer field to be parsed as a vector of bytes"
+    "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
   { "", "ts-flat-files", "",
     "Only generated one typescript file per .fbs file." },
   { "", "annotate", "SCHEMA",
     "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
   { "", "no-leak-private-annotation", "",
-    "Prevents multiple type of annotations within a Fbs SCHEMA file."
+    "Prevents multiple type of annotations within a Fbs SCHEMA file. "
     "Currently this is required to generate private types in Rust" },
 };
 
@@ -444,18 +447,20 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];
-      } else if (arg == "--go-namespace-module") {
-        if (++argi >= argc) Error("missing golang namespace" + arg, true);
-        opts.go_namespace_module = argv[argi];
       } else if (arg == "--go-import") {
         if (++argi >= argc) Error("missing golang import" + arg, true);
         opts.go_import = argv[argi];
+      } else if (arg == "--go-module-name") {
+        if (++argi >= argc) Error("missing golang module name" + arg, true);
+        opts.go_module_name = argv[argi];
       } else if (arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
       } else if (arg == "--unknown-json") {
         opts.skip_unexpected_fields_in_json = true;
       } else if (arg == "--no-prefix") {
         opts.prefixed_enums = false;
+      } else if (arg == "--cpp-minify-enums") {
+        opts.cpp_minify_enums = true;
       } else if (arg == "--scoped-enums") {
         opts.prefixed_enums = false;
         opts.scoped_enums = true;
@@ -645,10 +650,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     Error(
         "--cs-gen-json-serializer requires --gen-object-api to be set as "
         "well.");
-  }
-
-  if (opts.ts_flat_file && opts.generate_all) {
-    Error("Combining --ts-flat-file and --gen-all is not supported.");
   }
 
   flatbuffers::Parser conform_parser;

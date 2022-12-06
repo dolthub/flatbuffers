@@ -31,6 +31,7 @@
 #  include <stdio.h>
 #endif  // FLATBUFFERS_PREFER_PRINTF
 
+#include <limits>
 #include <string>
 
 namespace flatbuffers {
@@ -255,7 +256,7 @@ inline void strtoval_impl(double *val, const char *str, char **endptr) {
 }
 
 // UBSAN: double to float is safe if numeric_limits<float>::is_iec559 is true.
-__supress_ubsan__("float-cast-overflow")
+__suppress_ubsan__("float-cast-overflow")
 inline void strtoval_impl(float *val, const char *str, char **endptr) {
   *val = __strtof_impl(str, endptr);
 }
@@ -390,6 +391,18 @@ inline int64_t StringToInt(const char *s, int base = 10) {
 inline uint64_t StringToUInt(const char *s, int base = 10) {
   uint64_t val;
   return StringToIntegerImpl(&val, s, base) ? val : 0;
+}
+
+inline bool StringIsFlatbufferNan(const std::string &s) {
+  return s == "nan" || s == "+nan" || s == "-nan";
+}
+
+inline bool StringIsFlatbufferPositiveInfinity(const std::string &s) {
+  return s == "inf" || s == "+inf" || s == "infinity" || s == "+infinity";
+}
+
+inline bool StringIsFlatbufferNegativeInfinity(const std::string &s) {
+  return s == "-inf" || s == "-infinity";
 }
 
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
@@ -684,9 +697,6 @@ bool SetGlobalTestLocale(const char *locale_name,
 // Read (or test) a value of environment variable.
 bool ReadEnvironmentVariable(const char *var_name,
                              std::string *_value = nullptr);
-
-// MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
-void SetupDefaultCRTReportMode();
 
 enum class Case {
   kUnknown = 0,
