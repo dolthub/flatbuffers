@@ -5,7 +5,7 @@ package Example
 import (
 	"bytes"
 	"math"
-	flatbuffers "github.com/google/flatbuffers/v23/go"
+	flatbuffers "github.com/dolthub/flatbuffers/v23/go"
 
 	MyGame "github.com/google/flatbuffers/tests/MyGame"
 )

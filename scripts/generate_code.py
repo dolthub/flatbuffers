@@ -165,6 +165,13 @@ flatc(
 )
 
 flatc(
+    NO_INCL_OPTS + GO_OPTS + ["--grpc"],
+    schema="monster_test.fbs",
+    include="include_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
     RUST_OPTS,
     schema="monster_test.fbs",
     include="include_test",

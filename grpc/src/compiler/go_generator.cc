@@ -4,6 +4,8 @@
 #include <map>
 #include <sstream>
 
+#define GO_IMPORT_PATH "\"github.com/dolthub/flatbuffers/v23/go\""
+
 template<class T> grpc::string as_string(T x) {
   std::ostringstream out;
   out << x;
@@ -58,7 +60,7 @@ static void GenerateImports(grpc_generator::File *file,
   printer->Print("import (\n");
   printer->Indent();
   printer->Print(vars, "$context$ \"context\"\n");
-  printer->Print("flatbuffers \"github.com/google/flatbuffers/go\"\n");
+  printer->Print("flatbuffers " GO_IMPORT_PATH "\n");
   printer->Print(vars, "$grpc$ \"google.golang.org/grpc\"\n");
   printer->Print("\"google.golang.org/grpc/codes\"\n");
   printer->Print("\"google.golang.org/grpc/status\"\n");

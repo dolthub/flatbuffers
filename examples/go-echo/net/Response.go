@@ -3,7 +3,7 @@
 package net
 
 import (
-	flatbuffers "github.com/google/flatbuffers/v23/go"
+	flatbuffers "github.com/dolthub/flatbuffers/v23/go"
 
 	hero "github.com/google/flatbuffers/examples/go-echo/hero"
 )

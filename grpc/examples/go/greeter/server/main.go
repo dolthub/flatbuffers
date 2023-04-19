@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	flatbuffers "github.com/google/flatbuffers/v23/go"
+	flatbuffers "github.com/dolthub/flatbuffers/v23/go"
 	models "github.com/google/flatbuffers/grpc/examples/go/greeter/models"
 	"google.golang.org/grpc"
 )

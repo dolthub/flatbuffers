@@ -9,7 +9,7 @@ import (
 	"github.com/google/flatbuffers/examples/go-echo/hero"
 	"github.com/google/flatbuffers/examples/go-echo/net"
 
-	flatbuffers "github.com/google/flatbuffers/v23/go"
+	flatbuffers "github.com/dolthub/flatbuffers/v23/go"
 )
 
 func RequestBody() *bytes.Reader {

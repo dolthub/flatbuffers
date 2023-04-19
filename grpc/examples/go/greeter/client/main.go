@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	flatbuffers "github.com/google/flatbuffers/v23/go"
+	flatbuffers "github.com/dolthub/flatbuffers/v23/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 

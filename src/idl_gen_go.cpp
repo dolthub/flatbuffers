@@ -39,6 +39,8 @@
 #  define PATH_SEPARATOR "/"
 #endif
 
+#define GO_IMPORT_PATH "\"github.com/dolthub/flatbuffers/v23/go\""
+
 namespace flatbuffers {
 
 namespace go {
@@ -1538,7 +1540,7 @@ class GoGenerator : public BaseGenerator {
       if (!parser_.opts.go_import.empty()) {
         code += "\tflatbuffers \"" + parser_.opts.go_import + "\"\n";
       } else {
-        code += "\tflatbuffers \"github.com/google/flatbuffers/v23/go\"\n";
+        code += "\tflatbuffers " GO_IMPORT_PATH "\n";
       }
       if (tracked_imported_namespaces_.size() > 0) {
         code += "\n";
