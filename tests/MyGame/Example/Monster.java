@@ -9,7 +9,9 @@ import com.google.flatbuffers.Constants;
 import com.google.flatbuffers.DoubleVector;
 import com.google.flatbuffers.FlatBufferBuilder;
 import com.google.flatbuffers.FloatVector;
+import com.google.flatbuffers.IntVector;
 import com.google.flatbuffers.LongVector;
+import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
 import com.google.flatbuffers.Table;
@@ -22,7 +24,7 @@ import java.nio.ByteOrder;
  */
 @SuppressWarnings("unused")
 public final class Monster extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_22_11_23(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_3_3(); }
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
   public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MonsterBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONS"); }

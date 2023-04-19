@@ -44,6 +44,10 @@ Code generation and runtime libraries for many popular languages.
 1. TypeScript - [NPM](https://www.npmjs.com/package/flatbuffers)
 1. Nim
 
+## Versioning
+
+FlatBuffers does not follow traditional Semver versioning (see [rationale](https://github.com/google/flatbuffers/wiki/Versioning)) but rather uses a format of the date of the release.
+
 ## Contribution
 
 * [FlatBuffers Issues Tracker][] to submit an issue.
@@ -73,4 +77,4 @@ Please see our [Security Policy](SECURITY.md) for reporting vulnerabilities.
    [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
    [stackoverflow.com]: http://stackoverflow.com/search?q=flatbuffers
    [landing page]: https://google.github.io/flatbuffers
-   [LICENSE]: https://github.com/google/flatbuffers/blob/master/LICENSE.txt
+   [LICENSE]: https://github.com/google/flatbuffers/blob/master/LICENSE
