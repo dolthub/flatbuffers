@@ -5,7 +5,7 @@ package net
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	hero "echo/hero"
+	hero "github.com/google/flatbuffers/examples/go-echo/hero"
 )
 
 type ResponseT struct {
@@ -13,7 +13,9 @@ type ResponseT struct {
 }
 
 func (t *ResponseT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	playerOffset := t.Player.Pack(builder)
 	ResponseStart(builder)
 	ResponseAddPlayer(builder, playerOffset)
@@ -25,7 +27,9 @@ func (rcv *Response) UnPackTo(t *ResponseT) {
 }
 
 func (rcv *Response) UnPack() *ResponseT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ResponseT{}
 	rcv.UnPackTo(t)
 	return t
@@ -35,17 +39,34 @@ type Response struct {
 	_tab flatbuffers.Table
 }
 
-func GetRootAsResponse(buf []byte, offset flatbuffers.UOffsetT) *Response {
+func InitResponseRoot(o *Response, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
+	o.Init(buf, n+offset)
+	if ResponseNumFields < o.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
+}
+
+func TryGetRootAsResponse(buf []byte, offset flatbuffers.UOffsetT) (*Response, error) {
 	x := &Response{}
-	x.Init(buf, n+offset)
+	return x, InitResponseRoot(x, buf, offset)
+}
+
+func GetRootAsResponse(buf []byte, offset flatbuffers.UOffsetT) *Response {
+	x := &Response{}
+	InitResponseRoot(x, buf, offset)
 	return x
 }
 
-func GetSizePrefixedRootAsResponse(buf []byte, offset flatbuffers.UOffsetT) *Response {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+func TryGetSizePrefixedRootAsResponse(buf []byte, offset flatbuffers.UOffsetT) (*Response, error) {
 	x := &Response{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x, InitResponseRoot(x, buf, offset+flatbuffers.SizeUint32)
+}
+
+func GetSizePrefixedRootAsResponse(buf []byte, offset flatbuffers.UOffsetT) *Response {
+	x := &Response{}
+	InitResponseRoot(x, buf, offset+flatbuffers.SizeUint32)
 	return x
 }
 
@@ -71,8 +92,26 @@ func (rcv *Response) Player(obj *hero.Warrior) *hero.Warrior {
 	return nil
 }
 
+func (rcv *Response) TryPlayer(obj *hero.Warrior) (*hero.Warrior, error) {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
+	if o != 0 {
+		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		if obj == nil {
+			obj = new(hero.Warrior)
+		}
+		obj.Init(rcv._tab.Bytes, x)
+		if hero.WarriorNumFields < obj.Table().NumFields() {
+			return nil, flatbuffers.ErrTableHasUnknownFields
+		}
+		return obj, nil
+	}
+	return nil, nil
+}
+
+const ResponseNumFields = 1
+
 func ResponseStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(ResponseNumFields)
 }
 func ResponseAddPlayer(builder *flatbuffers.Builder, player flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(player), 0)

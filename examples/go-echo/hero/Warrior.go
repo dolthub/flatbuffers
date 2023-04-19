@@ -12,8 +12,13 @@ type WarriorT struct {
 }
 
 func (t *WarriorT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
-	nameOffset := builder.CreateString(t.Name)
+	if t == nil {
+		return 0
+	}
+	nameOffset := flatbuffers.UOffsetT(0)
+	if t.Name != "" {
+		nameOffset = builder.CreateString(t.Name)
+	}
 	WarriorStart(builder)
 	WarriorAddName(builder, nameOffset)
 	WarriorAddHp(builder, t.Hp)
@@ -26,7 +31,9 @@ func (rcv *Warrior) UnPackTo(t *WarriorT) {
 }
 
 func (rcv *Warrior) UnPack() *WarriorT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &WarriorT{}
 	rcv.UnPackTo(t)
 	return t
@@ -36,17 +43,34 @@ type Warrior struct {
 	_tab flatbuffers.Table
 }
 
-func GetRootAsWarrior(buf []byte, offset flatbuffers.UOffsetT) *Warrior {
+func InitWarriorRoot(o *Warrior, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
+	o.Init(buf, n+offset)
+	if WarriorNumFields < o.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
+}
+
+func TryGetRootAsWarrior(buf []byte, offset flatbuffers.UOffsetT) (*Warrior, error) {
 	x := &Warrior{}
-	x.Init(buf, n+offset)
+	return x, InitWarriorRoot(x, buf, offset)
+}
+
+func GetRootAsWarrior(buf []byte, offset flatbuffers.UOffsetT) *Warrior {
+	x := &Warrior{}
+	InitWarriorRoot(x, buf, offset)
 	return x
 }
 
-func GetSizePrefixedRootAsWarrior(buf []byte, offset flatbuffers.UOffsetT) *Warrior {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+func TryGetSizePrefixedRootAsWarrior(buf []byte, offset flatbuffers.UOffsetT) (*Warrior, error) {
 	x := &Warrior{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x, InitWarriorRoot(x, buf, offset+flatbuffers.SizeUint32)
+}
+
+func GetSizePrefixedRootAsWarrior(buf []byte, offset flatbuffers.UOffsetT) *Warrior {
+	x := &Warrior{}
+	InitWarriorRoot(x, buf, offset+flatbuffers.SizeUint32)
 	return x
 }
 
@@ -79,8 +103,10 @@ func (rcv *Warrior) MutateHp(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(6, n)
 }
 
+const WarriorNumFields = 2
+
 func WarriorStart(builder *flatbuffers.Builder) {
-	builder.StartObject(2)
+	builder.StartObject(WarriorNumFields)
 }
 func WarriorAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)

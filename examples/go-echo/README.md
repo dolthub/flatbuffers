@@ -5,7 +5,7 @@ A simple example demonstrating how to send flatbuffers over the network in Go.
 ## Generate flatbuffer code
 
 ```
-flatc -g --gen-object-api --go-module-name echo hero.fbs net.fbs
+../../flatc -g --gen-object-api --go-module-name github.com/google/flatbuffers/examples/go-echo hero.fbs net.fbs
 ```
 
 ## Running example

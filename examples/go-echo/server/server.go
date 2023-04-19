@@ -1,10 +1,11 @@
 package main
 
 import (
-	"echo/net"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/google/flatbuffers/examples/go-echo/net"
 )
 
 func echo(w http.ResponseWriter, r *http.Request) {

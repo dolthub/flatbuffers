@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"echo/hero"
-	"echo/net"
+	"github.com/google/flatbuffers/examples/go-echo/hero"
+	"github.com/google/flatbuffers/examples/go-echo/net"
 
 	flatbuffers "github.com/google/flatbuffers/go"
 )
