@@ -1,11 +1,11 @@
 module github.com/google/flatbuffers/tests
 
-replace github.com/google/flatbuffers => ../
+replace github.com/google/flatbuffers/v23 => ../
 
 go 1.19
 
 require (
-	github.com/google/flatbuffers v0.0.0-00010101000000-000000000000
+	github.com/google/flatbuffers/v23 v23.3.3
 	google.golang.org/grpc v1.48.0
 )
 

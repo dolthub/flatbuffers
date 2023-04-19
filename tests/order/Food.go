@@ -3,7 +3,7 @@
 package order
 
 import (
-	flatbuffers "github.com/google/flatbuffers/go"
+	flatbuffers "github.com/google/flatbuffers/v23/go"
 
 	Pizza "github.com/google/flatbuffers/tests/Pizza"
 )

@@ -34,7 +34,7 @@ import (
 	"testing"
 	"testing/quick"
 
-	flatbuffers "github.com/google/flatbuffers/go"
+	flatbuffers "github.com/google/flatbuffers/v23/go"
 )
 
 var (

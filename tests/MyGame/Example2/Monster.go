@@ -3,7 +3,7 @@
 package Example2
 
 import (
-	flatbuffers "github.com/google/flatbuffers/go"
+	flatbuffers "github.com/google/flatbuffers/v23/go"
 )
 
 type MonsterT struct {

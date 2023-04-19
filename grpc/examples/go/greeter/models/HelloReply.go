@@ -3,7 +3,7 @@
 package models
 
 import (
-	flatbuffers "github.com/google/flatbuffers/go"
+	flatbuffers "github.com/google/flatbuffers/v23/go"
 )
 
 type HelloReply struct {

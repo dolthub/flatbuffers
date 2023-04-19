@@ -3,7 +3,7 @@
 package MyGame
 
 import (
-	flatbuffers "github.com/google/flatbuffers/go"
+	flatbuffers "github.com/google/flatbuffers/v23/go"
 )
 
 type InParentNamespaceT struct {

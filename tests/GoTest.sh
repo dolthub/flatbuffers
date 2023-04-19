@@ -30,7 +30,7 @@ test_dir="$(pwd)"
 # flag -test.bench and the wildcard regexp ".":
 #   go -test -test.bench=. ...
 CGO_ENABLED=0 go test . \
-                     --coverpkg=github.com/google/flatbuffers/go \
+                     --coverpkg=github.com/google/flatbuffers/v23/go \
                      --cpp_data=${test_dir}/monsterdata_test.mon \
                      --out_data=${test_dir}/monsterdata_go_wire.mon \
                      --bench=. \

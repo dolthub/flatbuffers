@@ -1538,7 +1538,7 @@ class GoGenerator : public BaseGenerator {
       if (!parser_.opts.go_import.empty()) {
         code += "\tflatbuffers \"" + parser_.opts.go_import + "\"\n";
       } else {
-        code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
+        code += "\tflatbuffers \"github.com/google/flatbuffers/v23/go\"\n";
       }
       if (tracked_imported_namespaces_.size() > 0) {
         code += "\n";
