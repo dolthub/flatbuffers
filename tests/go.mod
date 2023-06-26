@@ -5,7 +5,7 @@ replace github.com/dolthub/flatbuffers/v23 => ../
 go 1.19
 
 require (
-	github.com/dolthub/flatbuffers/v23 v23.3.3
+	github.com/dolthub/flatbuffers/v23 v23.3.3-dh.2
 	google.golang.org/grpc v1.48.0
 )
 

@@ -8,6 +8,6 @@ replace github.com/dolthub/flatbuffers/v23 => ../../../../..
 
 require (
 	github.com/google/flatbuffers/grpc/examples/go/greeter/models v0.0.0
-	github.com/dolthub/flatbuffers/v23 v23.3.3
+	github.com/dolthub/flatbuffers/v23 v23.3.3-dh.2
 	google.golang.org/grpc v1.35.0
 )
