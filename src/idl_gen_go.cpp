@@ -296,34 +296,18 @@ class GoGenerator : public BaseGenerator {
 
     code += "func Init" + struct_type + "Root(o *" + struct_type + ", buf []byte, offset flatbuffers.UOffsetT) error {\n";
     code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
-    code += "\to.Init(buf, n+offset)\n";
-    code += "\tif " + NumFieldsConstant(struct_def) + " < o.Table().NumFields() {\n";
-    code += "\t\treturn flatbuffers.ErrTableHasUnknownFields\n\t}\n";
-    code += "\treturn nil\n";
+    code += "\treturn o.Init(buf, n+offset)\n";
     code += "}\n\n";
 
-    for (int i = 0; i < 4; i++) {
-      bool is_try = i%2 == 0;
-      if (!is_try) {
-        continue;
-      }
-      code += (is_try ? "func TryGet" : "func Get") + size_prefix[i/2] + "RootAs" + struct_type;
+    for (int i = 0; i < 2; i++) {
+      code += "func TryGet" + size_prefix[i] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-      if (is_try) {
-        code += "(*" + struct_type + ", error)";
-      } else {
-        code += "*" + struct_type + "";
-      }
+      code += "(*" + struct_type + ", error)";
       code += " {\n";
       code += "\tx := &" + struct_type + "{}\n";
 
       const std::string offset_code = (i/2 == 0 ? "offset" : "offset+flatbuffers.SizeUint32");
-      if (is_try) {
-          code += "\treturn x, Init" + struct_type + "Root(x, buf, " + offset_code + ")\n";
-      } else {
-          code += "\tInit" + struct_type + "Root(x, buf, " + offset_code + ")\n";
-          code += "\treturn x\n";
-      }
+      code += "\treturn x, Init" + struct_type + "Root(x, buf, " + offset_code + ")\n";
       code += "}\n\n";
     }
   }
@@ -333,10 +317,13 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += " Init(buf []byte, i flatbuffers.UOffsetT) ";
+    code += " Init(buf []byte, i flatbuffers.UOffsetT) error ";
     code += "{\n";
     code += "\trcv._tab.Bytes = buf\n";
     code += "\trcv._tab.Pos = i\n";
+    code += "\tif " + NumFieldsConstant(struct_def) + " < rcv.Table().NumFields() {\n";
+    code += "\t\treturn flatbuffers.ErrTableHasUnknownFields\n\t}\n";
+    code += "\treturn nil\n";
     code += "}\n\n";
   }
 
