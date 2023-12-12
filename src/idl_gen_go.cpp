@@ -304,6 +304,9 @@ class GoGenerator : public BaseGenerator {
 
     for (int i = 0; i < 4; i++) {
       bool is_try = i%2 == 0;
+      if (!is_try) {
+        continue;
+      }
       code += (is_try ? "func TryGet" : "func Get") + size_prefix[i/2] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
       if (is_try) {
@@ -437,23 +440,6 @@ class GoGenerator : public BaseGenerator {
   void GetStructFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
-    GenReceiver(struct_def, code_ptr);
-    code += " " + namer_.Function(field);
-    code += "(obj *";
-    code += TypeName(field);
-    code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
-    if (field.value.type.struct_def->fixed) {
-      code += "\t\tx := o + rcv._tab.Pos\n";
-    } else {
-      code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
-    }
-    code += "\t\tif obj == nil {\n";
-    code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
-    code += "\t\t}\n";
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
-    code += "\t\treturn obj\n\t}\n\treturn nil\n";
-    code += "}\n\n";
-
     if (!field.value.type.struct_def->fixed) {
       GenReceiver(struct_def, code_ptr);
       code += " Try" + namer_.Function(field);
@@ -467,6 +453,23 @@ class GoGenerator : public BaseGenerator {
       code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
       code += "\t\tif " + NumFieldsConstant(*field.value.type.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn nil, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
       code += "\t\treturn obj, nil\n\t}\n\treturn nil, nil\n";
+      code += "}\n\n";
+    } else {
+      GenReceiver(struct_def, code_ptr);
+      code += " " + namer_.Function(field);
+      code += "(obj *";
+      code += TypeName(field);
+      code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
+      if (field.value.type.struct_def->fixed) {
+        code += "\t\tx := o + rcv._tab.Pos\n";
+      } else {
+        code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
+      }
+      code += "\t\tif obj == nil {\n";
+      code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
+      code += "\t\t}\n";
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\treturn obj\n\t}\n\treturn nil\n";
       code += "}\n\n";
     }
   }
@@ -503,21 +506,6 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
-    GenReceiver(struct_def, code_ptr);
-    code += " " + namer_.Function(field);
-    code += "(obj *" + TypeName(field);
-    code += ", j int) bool " + OffsetPrefix(field);
-    code += "\t\tx := rcv._tab.Vector(o)\n";
-    code += "\t\tx += flatbuffers.UOffsetT(j) * ";
-    code += NumToString(InlineSize(vectortype)) + "\n";
-    if (!(vectortype.struct_def->fixed)) {
-      code += "\t\tx = rcv._tab.Indirect(x)\n";
-    }
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
-    code += "\t\treturn true\n\t}\n";
-    code += "\treturn false\n";
-    code += "}\n\n";
-
     if (!vectortype.struct_def->fixed) {
       GenReceiver(struct_def, code_ptr);
       code += " Try" + namer_.Function(field);
@@ -531,6 +519,21 @@ class GoGenerator : public BaseGenerator {
       code += "\t\tif " + NumFieldsConstant(*vectortype.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn false, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
       code += "\t\treturn true, nil\n\t}\n";
       code += "\treturn false, nil\n";
+      code += "}\n\n";
+    } else {
+      GenReceiver(struct_def, code_ptr);
+      code += " " + namer_.Function(field);
+      code += "(obj *" + TypeName(field);
+      code += ", j int) bool " + OffsetPrefix(field);
+      code += "\t\tx := rcv._tab.Vector(o)\n";
+      code += "\t\tx += flatbuffers.UOffsetT(j) * ";
+      code += NumToString(InlineSize(vectortype)) + "\n";
+      if (!(vectortype.struct_def->fixed)) {
+        code += "\t\tx = rcv._tab.Indirect(x)\n";
+      }
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\treturn true\n\t}\n";
+      code += "\treturn false\n";
       code += "}\n\n";
     }
   }
