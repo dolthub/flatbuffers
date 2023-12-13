@@ -39,9 +39,10 @@ type Vec3 struct {
 	_tab flatbuffers.Struct
 }
 
-func (rcv *Vec3) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Vec3) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	return nil
 }
 
 func (rcv *Vec3) Table() flatbuffers.Table {

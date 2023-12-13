@@ -31,9 +31,10 @@ type Ability struct {
 	_tab flatbuffers.Struct
 }
 
-func (rcv *Ability) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Ability) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	return nil
 }
 
 func (rcv *Ability) Table() flatbuffers.Table {

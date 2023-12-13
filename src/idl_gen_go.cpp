@@ -296,31 +296,18 @@ class GoGenerator : public BaseGenerator {
 
     code += "func Init" + struct_type + "Root(o *" + struct_type + ", buf []byte, offset flatbuffers.UOffsetT) error {\n";
     code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
-    code += "\to.Init(buf, n+offset)\n";
-    code += "\tif " + NumFieldsConstant(struct_def) + " < o.Table().NumFields() {\n";
-    code += "\t\treturn flatbuffers.ErrTableHasUnknownFields\n\t}\n";
-    code += "\treturn nil\n";
+    code += "\treturn o.Init(buf, n+offset)\n";
     code += "}\n\n";
 
-    for (int i = 0; i < 4; i++) {
-      bool is_try = i%2 == 0;
-      code += (is_try ? "func TryGet" : "func Get") + size_prefix[i/2] + "RootAs" + struct_type;
+    for (int i = 0; i < 2; i++) {
+      code += "func TryGet" + size_prefix[i] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-      if (is_try) {
-        code += "(*" + struct_type + ", error)";
-      } else {
-        code += "*" + struct_type + "";
-      }
+      code += "(*" + struct_type + ", error)";
       code += " {\n";
       code += "\tx := &" + struct_type + "{}\n";
 
-      const std::string offset_code = (i/2 == 0 ? "offset" : "offset+flatbuffers.SizeUint32");
-      if (is_try) {
-          code += "\treturn x, Init" + struct_type + "Root(x, buf, " + offset_code + ")\n";
-      } else {
-          code += "\tInit" + struct_type + "Root(x, buf, " + offset_code + ")\n";
-          code += "\treturn x\n";
-      }
+      const std::string offset_code = (i == 0 ? "offset" : "offset+flatbuffers.SizeUint32");
+      code += "\treturn x, Init" + struct_type + "Root(x, buf, " + offset_code + ")\n";
       code += "}\n\n";
     }
   }
@@ -330,10 +317,15 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += " Init(buf []byte, i flatbuffers.UOffsetT) ";
+    code += " Init(buf []byte, i flatbuffers.UOffsetT) error ";
     code += "{\n";
     code += "\trcv._tab.Bytes = buf\n";
     code += "\trcv._tab.Pos = i\n";
+    if (!struct_def.fixed) {
+      code += "\tif " + NumFieldsConstant(struct_def) + " < rcv.Table().NumFields() {\n";
+      code += "\t\treturn flatbuffers.ErrTableHasUnknownFields\n\t}\n";
+    }
+    code += "\treturn nil\n";
     code += "}\n\n";
   }
 
@@ -437,23 +429,6 @@ class GoGenerator : public BaseGenerator {
   void GetStructFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
-    GenReceiver(struct_def, code_ptr);
-    code += " " + namer_.Function(field);
-    code += "(obj *";
-    code += TypeName(field);
-    code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
-    if (field.value.type.struct_def->fixed) {
-      code += "\t\tx := o + rcv._tab.Pos\n";
-    } else {
-      code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
-    }
-    code += "\t\tif obj == nil {\n";
-    code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
-    code += "\t\t}\n";
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
-    code += "\t\treturn obj\n\t}\n\treturn nil\n";
-    code += "}\n\n";
-
     if (!field.value.type.struct_def->fixed) {
       GenReceiver(struct_def, code_ptr);
       code += " Try" + namer_.Function(field);
@@ -467,6 +442,23 @@ class GoGenerator : public BaseGenerator {
       code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
       code += "\t\tif " + NumFieldsConstant(*field.value.type.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn nil, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
       code += "\t\treturn obj, nil\n\t}\n\treturn nil, nil\n";
+      code += "}\n\n";
+    } else {
+      GenReceiver(struct_def, code_ptr);
+      code += " " + namer_.Function(field);
+      code += "(obj *";
+      code += TypeName(field);
+      code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
+      if (field.value.type.struct_def->fixed) {
+        code += "\t\tx := o + rcv._tab.Pos\n";
+      } else {
+        code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
+      }
+      code += "\t\tif obj == nil {\n";
+      code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
+      code += "\t\t}\n";
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\treturn obj\n\t}\n\treturn nil\n";
       code += "}\n\n";
     }
   }
@@ -503,21 +495,6 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
-    GenReceiver(struct_def, code_ptr);
-    code += " " + namer_.Function(field);
-    code += "(obj *" + TypeName(field);
-    code += ", j int) bool " + OffsetPrefix(field);
-    code += "\t\tx := rcv._tab.Vector(o)\n";
-    code += "\t\tx += flatbuffers.UOffsetT(j) * ";
-    code += NumToString(InlineSize(vectortype)) + "\n";
-    if (!(vectortype.struct_def->fixed)) {
-      code += "\t\tx = rcv._tab.Indirect(x)\n";
-    }
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
-    code += "\t\treturn true\n\t}\n";
-    code += "\treturn false\n";
-    code += "}\n\n";
-
     if (!vectortype.struct_def->fixed) {
       GenReceiver(struct_def, code_ptr);
       code += " Try" + namer_.Function(field);
@@ -531,6 +508,21 @@ class GoGenerator : public BaseGenerator {
       code += "\t\tif " + NumFieldsConstant(*vectortype.struct_def) + " < obj.Table().NumFields() {\n\t\t\treturn false, flatbuffers.ErrTableHasUnknownFields\n\t\t}\n";
       code += "\t\treturn true, nil\n\t}\n";
       code += "\treturn false, nil\n";
+      code += "}\n\n";
+    } else {
+      GenReceiver(struct_def, code_ptr);
+      code += " " + namer_.Function(field);
+      code += "(obj *" + TypeName(field);
+      code += ", j int) bool " + OffsetPrefix(field);
+      code += "\t\tx := rcv._tab.Vector(o)\n";
+      code += "\t\tx += flatbuffers.UOffsetT(j) * ";
+      code += NumToString(InlineSize(vectortype)) + "\n";
+      if (!(vectortype.struct_def->fixed)) {
+        code += "\t\tx = rcv._tab.Indirect(x)\n";
+      }
+      code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+      code += "\t\treturn true\n\t}\n";
+      code += "\treturn false\n";
       code += "}\n\n";
     }
   }
@@ -1071,8 +1063,8 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += "func (rcv " + namer_.Type(enum_def) +
-            ") UnPack(table flatbuffers.Table) *" + NativeName(enum_def) +
-            " {\n";
+            ") UnPack(table flatbuffers.Table) (*" + NativeName(enum_def) +
+            ", error) {\n";
     code += "\tswitch rcv {\n";
 
     for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
@@ -1084,15 +1076,18 @@ class GoGenerator : public BaseGenerator {
               WrapInNameSpaceAndTrack(ev.union_type.struct_def,
                                       ev.union_type.struct_def->name) +
               "\n";
-      code += "\t\tx.Init(table.Bytes, table.Pos)\n";
+      code += "\t\terr := x.Init(table.Bytes, table.Pos)\n";
+      code += "\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n";
+      code += "\t\tunpacked, err := x.UnPack()\n";
+      code += "\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n";
 
       code += "\t\treturn &" +
               WrapInNameSpaceAndTrack(&enum_def, NativeName(enum_def)) +
               "{ Type: " + namer_.EnumVariant(enum_def, ev) +
-              ", Value: x.UnPack() }\n";
+              ", Value: unpacked }, nil\n";
     }
     code += "\t}\n";
-    code += "\treturn nil\n";
+    code += "\treturn nil, nil\n";
     code += "}\n\n";
   }
 
@@ -1225,7 +1220,8 @@ class GoGenerator : public BaseGenerator {
     const std::string struct_type = namer_.Type(struct_def);
 
     code += "func (rcv *" + struct_type + ") UnPackTo(t *" +
-            NativeName(struct_def) + ") {\n";
+            NativeName(struct_def) + ") error {\n";
+    code += "\tvar err error\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
@@ -1254,15 +1250,27 @@ class GoGenerator : public BaseGenerator {
                   WrapInNameSpaceAndTrack(field.value.type.struct_def,
                                           field.value.type.struct_def->name) +
                   "{}\n";
-          code += "\t\trcv." + field_field + "(&x, j)\n";
+          if (field.value.type.struct_def->fixed) {
+            code += "\t\trcv." + field_field + "(&x, j)\n";
+          } else {
+            code += "\t\t_, err = rcv.Try" + field_field + "(&x, j)\n";
+            code += "\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n";
+          }
         }
-        code += "\t\tt." + field_field + "[j] = ";
+        if (field.value.type.element == BASE_TYPE_STRUCT && !field.value.type.struct_def->fixed) {
+          code += "\t\tt." + field_field + "[j], err = ";
+        } else {
+          code += "\t\tt." + field_field + "[j] = ";
+        }
         if (IsScalar(field.value.type.element)) {
           code += "rcv." + field_field + "(j)";
         } else if (field.value.type.element == BASE_TYPE_STRING) {
           code += "string(rcv." + field_field + "(j))";
         } else if (field.value.type.element == BASE_TYPE_STRUCT) {
-          code += "x.UnPack()";
+          code += "x.UnPack()\n";
+          if (!field.value.type.struct_def->fixed) {
+            code += "\t\tif err != nil {\n\t\t\treturn err\n\t\t}";
+          }
         } else {
           // TODO(iceboy): Support vector of unions.
           FLATBUFFERS_ASSERT(0);
@@ -1270,29 +1278,43 @@ class GoGenerator : public BaseGenerator {
         code += "\n";
         code += "\t}\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-        code +=
-            "\tt." + field_field + " = rcv." + field_field + "(nil).UnPack()\n";
+        if (field.value.type.struct_def->fixed) {
+          code +=
+              "\t" + field_field + " := rcv." + field_field + "(nil)\n";
+          code +=
+              "\tt." + field_field + " = " + field_field + ".UnPack()\n";
+        } else {
+          code +=
+              "\t" + field_field + ", err := rcv.Try" + field_field + "(nil)\n";
+          code +=
+              "\tif err != nil {\n\t\treturn err\n\t}\n";
+          code +=
+              "\tt." + field_field + ", err = " + field_field + ".UnPack()\n";
+          code += "\tif err != nil {\n\t\treturn err\n\t}\n";
+        }
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
         const std::string field_table = field_var + "Table";
         code += "\t" + field_table + " := flatbuffers.Table{}\n";
         code +=
             "\tif rcv." + namer_.Method(field) + "(&" + field_table + ") {\n";
-        code += "\t\tt." + field_field + " = rcv." +
+        code += "\t\tt." + field_field + ", err = rcv." +
                 namer_.Method(field.name + UnionTypeFieldSuffix()) +
                 "().UnPack(" + field_table + ")\n";
+        code += "\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n";
         code += "\t}\n";
       } else {
         FLATBUFFERS_ASSERT(0);
       }
     }
+    code += "\treturn err\n";
     code += "}\n\n";
 
-    code += "func (rcv *" + struct_type + ") UnPack() *" +
-            NativeName(struct_def) + " {\n";
-    code += "\tif rcv == nil {\n\t\treturn nil\n\t}\n";
+    code += "func (rcv *" + struct_type + ") UnPack() (*" +
+            NativeName(struct_def) + ", error) {\n";
+    code += "\tif rcv == nil {\n\t\treturn nil, nil\n\t}\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
-    code += "\trcv.UnPackTo(t)\n";
-    code += "\treturn t\n";
+    code += "\terr := rcv.UnPackTo(t)\n";
+    code += "\treturn t, err\n";
     code += "}\n\n";
   }
 

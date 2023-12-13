@@ -17,16 +17,18 @@ func (t *InParentNamespaceT) Pack(builder *flatbuffers.Builder) flatbuffers.UOff
 	return InParentNamespaceEnd(builder)
 }
 
-func (rcv *InParentNamespace) UnPackTo(t *InParentNamespaceT) {
+func (rcv *InParentNamespace) UnPackTo(t *InParentNamespaceT) error {
+	var err error
+	return err
 }
 
-func (rcv *InParentNamespace) UnPack() *InParentNamespaceT {
+func (rcv *InParentNamespace) UnPack() (*InParentNamespaceT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &InParentNamespaceT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type InParentNamespace struct {
@@ -35,11 +37,7 @@ type InParentNamespace struct {
 
 func InitInParentNamespaceRoot(o *InParentNamespace, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if InParentNamespaceNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (*InParentNamespace, error) {
@@ -47,26 +45,18 @@ func TryGetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (*In
 	return x, InitInParentNamespaceRoot(x, buf, offset)
 }
 
-func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
-	x := &InParentNamespace{}
-	InitInParentNamespaceRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (*InParentNamespace, error) {
 	x := &InParentNamespace{}
 	return x, InitInParentNamespaceRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
-	x := &InParentNamespace{}
-	InitInParentNamespaceRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if InParentNamespaceNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *InParentNamespace) Table() flatbuffers.Table {

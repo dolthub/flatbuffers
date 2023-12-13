@@ -27,19 +27,21 @@ func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return StatEnd(builder)
 }
 
-func (rcv *Stat) UnPackTo(t *StatT) {
+func (rcv *Stat) UnPackTo(t *StatT) error {
+	var err error
 	t.Id = string(rcv.Id())
 	t.Val = rcv.Val()
 	t.Count = rcv.Count()
+	return err
 }
 
-func (rcv *Stat) UnPack() *StatT {
+func (rcv *Stat) UnPack() (*StatT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &StatT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type Stat struct {
@@ -48,11 +50,7 @@ type Stat struct {
 
 func InitStatRoot(o *Stat, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if StatNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
@@ -60,26 +58,18 @@ func TryGetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
 	return x, InitStatRoot(x, buf, offset)
 }
 
-func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
-	x := &Stat{}
-	InitStatRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (*Stat, error) {
 	x := &Stat{}
 	return x, InitStatRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
-	x := &Stat{}
-	InitStatRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if StatNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *Stat) Table() flatbuffers.Table {

@@ -25,18 +25,34 @@ func (t *FoodT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return FoodEnd(builder)
 }
 
-func (rcv *Food) UnPackTo(t *FoodT) {
-	t.Pizza = rcv.Pizza(nil).UnPack()
-	t.PizzaTest = rcv.PizzaTest(nil).UnPack()
+func (rcv *Food) UnPackTo(t *FoodT) error {
+	var err error
+	Pizza, err := rcv.TryPizza(nil)
+	if err != nil {
+		return err
+	}
+	t.Pizza, err = Pizza.UnPack()
+	if err != nil {
+		return err
+	}
+	PizzaTest, err := rcv.TryPizzaTest(nil)
+	if err != nil {
+		return err
+	}
+	t.PizzaTest, err = PizzaTest.UnPack()
+	if err != nil {
+		return err
+	}
+	return err
 }
 
-func (rcv *Food) UnPack() *FoodT {
+func (rcv *Food) UnPack() (*FoodT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &FoodT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type Food struct {
@@ -45,11 +61,7 @@ type Food struct {
 
 func InitFoodRoot(o *Food, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if FoodNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsFood(buf []byte, offset flatbuffers.UOffsetT) (*Food, error) {
@@ -57,43 +69,22 @@ func TryGetRootAsFood(buf []byte, offset flatbuffers.UOffsetT) (*Food, error) {
 	return x, InitFoodRoot(x, buf, offset)
 }
 
-func GetRootAsFood(buf []byte, offset flatbuffers.UOffsetT) *Food {
-	x := &Food{}
-	InitFoodRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsFood(buf []byte, offset flatbuffers.UOffsetT) (*Food, error) {
 	x := &Food{}
 	return x, InitFoodRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsFood(buf []byte, offset flatbuffers.UOffsetT) *Food {
-	x := &Food{}
-	InitFoodRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *Food) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Food) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if FoodNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *Food) Table() flatbuffers.Table {
 	return rcv._tab
-}
-
-func (rcv *Food) Pizza(obj *Pizza.Pizza) *Pizza.Pizza {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
-	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
-		if obj == nil {
-			obj = new(Pizza.Pizza)
-		}
-		obj.Init(rcv._tab.Bytes, x)
-		return obj
-	}
-	return nil
 }
 
 func (rcv *Food) TryPizza(obj *Pizza.Pizza) (*Pizza.Pizza, error) {
@@ -110,19 +101,6 @@ func (rcv *Food) TryPizza(obj *Pizza.Pizza) (*Pizza.Pizza, error) {
 		return obj, nil
 	}
 	return nil, nil
-}
-
-func (rcv *Food) PizzaTest(obj *Pizza.Pizza) *Pizza.Pizza {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
-	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
-		if obj == nil {
-			obj = new(Pizza.Pizza)
-		}
-		obj.Init(rcv._tab.Bytes, x)
-		return obj
-	}
-	return nil
 }
 
 func (rcv *Food) TryPizzaTest(obj *Pizza.Pizza) (*Pizza.Pizza, error) {

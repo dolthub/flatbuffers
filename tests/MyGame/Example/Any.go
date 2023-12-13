@@ -59,20 +59,41 @@ func (t *AnyT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return 0
 }
 
-func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
+func (rcv Any) UnPack(table flatbuffers.Table) (*AnyT, error) {
 	switch rcv {
 	case AnyMonster:
 		var x Monster
-		x.Init(table.Bytes, table.Pos)
-		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyT{ Type: AnyMonster, Value: unpacked }, nil
 	case AnyTestSimpleTableWithEnum:
 		var x TestSimpleTableWithEnum
-		x.Init(table.Bytes, table.Pos)
-		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: unpacked }, nil
 	case AnyMyGame_Example2_Monster:
 		var x MyGame__Example2.Monster
-		x.Init(table.Bytes, table.Pos)
-		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: unpacked }, nil
 	}
-	return nil
+	return nil, nil
 }

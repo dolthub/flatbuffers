@@ -113,7 +113,8 @@ func (t *ScalarStuffT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return ScalarStuffEnd(builder)
 }
 
-func (rcv *ScalarStuff) UnPackTo(t *ScalarStuffT) {
+func (rcv *ScalarStuff) UnPackTo(t *ScalarStuffT) error {
+	var err error
 	t.JustI8 = rcv.JustI8()
 	t.MaybeI8 = rcv.MaybeI8()
 	t.DefaultI8 = rcv.DefaultI8()
@@ -150,15 +151,16 @@ func (rcv *ScalarStuff) UnPackTo(t *ScalarStuffT) {
 	t.JustEnum = rcv.JustEnum()
 	t.MaybeEnum = rcv.MaybeEnum()
 	t.DefaultEnum = rcv.DefaultEnum()
+	return err
 }
 
-func (rcv *ScalarStuff) UnPack() *ScalarStuffT {
+func (rcv *ScalarStuff) UnPack() (*ScalarStuffT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &ScalarStuffT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type ScalarStuff struct {
@@ -167,11 +169,7 @@ type ScalarStuff struct {
 
 func InitScalarStuffRoot(o *ScalarStuff, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if ScalarStuffNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) (*ScalarStuff, error) {
@@ -179,26 +177,18 @@ func TryGetRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) (*ScalarSt
 	return x, InitScalarStuffRoot(x, buf, offset)
 }
 
-func GetRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *ScalarStuff {
-	x := &ScalarStuff{}
-	InitScalarStuffRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) (*ScalarStuff, error) {
 	x := &ScalarStuff{}
 	return x, InitScalarStuffRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *ScalarStuff {
-	x := &ScalarStuff{}
-	InitScalarStuffRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *ScalarStuff) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *ScalarStuff) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if ScalarStuffNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *ScalarStuff) Table() flatbuffers.Table {
