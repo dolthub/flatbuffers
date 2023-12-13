@@ -17,16 +17,18 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return MonsterEnd(builder)
 }
 
-func (rcv *Monster) UnPackTo(t *MonsterT) {
+func (rcv *Monster) UnPackTo(t *MonsterT) error {
+	var err error
+	return err
 }
 
-func (rcv *Monster) UnPack() *MonsterT {
+func (rcv *Monster) UnPack() (*MonsterT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &MonsterT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type Monster struct {
@@ -35,11 +37,7 @@ type Monster struct {
 
 func InitMonsterRoot(o *Monster, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if MonsterNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
@@ -47,26 +45,18 @@ func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, err
 	return x, InitMonsterRoot(x, buf, offset)
 }
 
-func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
-	x := &Monster{}
-	InitMonsterRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
 	x := &Monster{}
 	return x, InitMonsterRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
-	x := &Monster{}
-	InitMonsterRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if MonsterNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *Monster) Table() flatbuffers.Table {

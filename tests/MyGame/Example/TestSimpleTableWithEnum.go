@@ -19,17 +19,19 @@ func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffer
 	return TestSimpleTableWithEnumEnd(builder)
 }
 
-func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
+func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) error {
+	var err error
 	t.Color = rcv.Color()
+	return err
 }
 
-func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
+func (rcv *TestSimpleTableWithEnum) UnPack() (*TestSimpleTableWithEnumT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &TestSimpleTableWithEnumT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type TestSimpleTableWithEnum struct {
@@ -38,11 +40,7 @@ type TestSimpleTableWithEnum struct {
 
 func InitTestSimpleTableWithEnumRoot(o *TestSimpleTableWithEnum, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if TestSimpleTableWithEnumNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
@@ -50,26 +48,18 @@ func TryGetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT
 	return x, InitTestSimpleTableWithEnumRoot(x, buf, offset)
 }
 
-func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
-	x := &TestSimpleTableWithEnum{}
-	InitTestSimpleTableWithEnumRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) (*TestSimpleTableWithEnum, error) {
 	x := &TestSimpleTableWithEnum{}
 	return x, InitTestSimpleTableWithEnumRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
-	x := &TestSimpleTableWithEnum{}
-	InitTestSimpleTableWithEnumRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if TestSimpleTableWithEnumNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *TestSimpleTableWithEnum) Table() flatbuffers.Table {

@@ -19,17 +19,19 @@ func (t *PizzaT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return PizzaEnd(builder)
 }
 
-func (rcv *Pizza) UnPackTo(t *PizzaT) {
+func (rcv *Pizza) UnPackTo(t *PizzaT) error {
+	var err error
 	t.Size = rcv.Size()
+	return err
 }
 
-func (rcv *Pizza) UnPack() *PizzaT {
+func (rcv *Pizza) UnPack() (*PizzaT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &PizzaT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type Pizza struct {
@@ -38,11 +40,7 @@ type Pizza struct {
 
 func InitPizzaRoot(o *Pizza, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if PizzaNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsPizza(buf []byte, offset flatbuffers.UOffsetT) (*Pizza, error) {
@@ -50,26 +48,18 @@ func TryGetRootAsPizza(buf []byte, offset flatbuffers.UOffsetT) (*Pizza, error) 
 	return x, InitPizzaRoot(x, buf, offset)
 }
 
-func GetRootAsPizza(buf []byte, offset flatbuffers.UOffsetT) *Pizza {
-	x := &Pizza{}
-	InitPizzaRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsPizza(buf []byte, offset flatbuffers.UOffsetT) (*Pizza, error) {
 	x := &Pizza{}
 	return x, InitPizzaRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsPizza(buf []byte, offset flatbuffers.UOffsetT) *Pizza {
-	x := &Pizza{}
-	InitPizzaRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *Pizza) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Pizza) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if PizzaNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *Pizza) Table() flatbuffers.Table {

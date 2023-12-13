@@ -110,8 +110,9 @@ func CheckNoNamespaceImport(fail func(string, ...interface{})) {
 	builder.Finish(food.Pack(builder))
 
 	// Receive order
-	received_food := order.GetRootAsFood(builder.FinishedBytes(), 0)
-	received_pizza := received_food.Pizza(nil).UnPack()
+	received_food, _ := order.TryGetRootAsFood(builder.FinishedBytes(), 0)
+	tmp, _ := received_food.TryPizza(nil)
+	received_pizza, _ := tmp.UnPack()
 
 	// Check if received pizza is equal to ordered pizza
 	if !reflect.DeepEqual(ordered_pizza, *received_pizza) {
@@ -223,18 +224,32 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, f
 	// try the two ways of generating a monster
 	var monster1 *example.Monster
 	monster2 := &example.Monster{}
+	var err error
 
 	if sizePrefix {
-		monster1 = example.GetSizePrefixedRootAsMonster(buf, offset)
-		flatbuffers.GetSizePrefixedRootAs(buf, offset, monster2)
+		monster1, err = example.TryGetSizePrefixedRootAsMonster(buf, offset)
+		if err != nil {
+			fail(FailString("err", nil, err))
+		}
+		err = flatbuffers.TryGetSizePrefixedRootAs(buf, offset, monster2)
+		if err != nil {
+			fail(FailString("err", nil, err))
+		}
 	} else {
-		monster1 = example.GetRootAsMonster(buf, offset)
-		flatbuffers.GetRootAs(buf, offset, monster2)
+		monster1, err = example.TryGetRootAsMonster(buf, offset)
+		if err != nil {
+			fail(FailString("err", nil, err))
+		}
+		err = flatbuffers.TryGetRootAs(buf, offset, monster2)
+		if err != nil {
+			fail(FailString("err", nil, err))
+		}
 	}
 
-	for _, monster := range []*example.Monster{monster1, monster2} {
+	for i, monster := range []*example.Monster{monster1, monster2} {
 		if got := monster.Hp(); 80 != got {
-			fail(FailString("hp", 80, got))
+			panic("what")
+			fail(FailString(fmt.Sprintf("hp[%d][%v]", i, sizePrefix), 80, got))
 		}
 
 		// default
@@ -402,9 +417,9 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, sizePrefix bool,
 	// load monster data from the buffer
 	var monster *example.Monster
 	if sizePrefix {
-		monster = example.GetSizePrefixedRootAsMonster(buf, offset)
+		monster, _ = example.TryGetSizePrefixedRootAsMonster(buf, offset)
 	} else {
-		monster = example.GetRootAsMonster(buf, offset)
+		monster, _ = example.TryGetRootAsMonster(buf, offset)
 	}
 
 	// test case struct
@@ -489,9 +504,9 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, sizePrefix bool,
 	// To make sure the buffer has changed accordingly
 	// Read data from the buffer and verify all fields
 	if sizePrefix {
-		monster = example.GetSizePrefixedRootAsMonster(buf, offset)
+		monster, _ = example.TryGetSizePrefixedRootAsMonster(buf, offset)
 	} else {
-		monster = example.GetRootAsMonster(buf, offset)
+		monster, _ = example.TryGetRootAsMonster(buf, offset)
 	}
 
 	for _, t := range testForMutatedValues {
@@ -514,9 +529,9 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, sizePrefix bool,
 	// This test is done to make sure mutations do not do
 	// any unnecessary changes to the buffer.
 	if sizePrefix {
-		monster = example.GetSizePrefixedRootAsMonster(buf, offset)
+		monster, _ = example.TryGetSizePrefixedRootAsMonster(buf, offset)
 	} else {
-		monster = example.GetRootAsMonster(buf, offset)
+		monster, _ = example.TryGetRootAsMonster(buf, offset)
 	}
 
 	monster.MutateHp(80)
@@ -546,9 +561,11 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fa
 	var monster *example.MonsterT
 
 	if sizePrefix {
-		monster = example.GetSizePrefixedRootAsMonster(buf, offset).UnPack()
+		tmp, _ := example.TryGetSizePrefixedRootAsMonster(buf, offset)
+		monster, _ = tmp.UnPack()
 	} else {
-		monster = example.GetRootAsMonster(buf, offset).UnPack()
+		tmp, _ := example.TryGetRootAsMonster(buf, offset)
+		monster, _ = tmp.UnPack()
 	}
 
 	if got := monster.Hp; 80 != got {
@@ -570,7 +587,8 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fa
 
 	builder := flatbuffers.NewBuilder(0)
 	builder.Finish(monster.Pack(builder))
-	monster2 := example.GetRootAsMonster(builder.FinishedBytes(), 0).UnPack()
+	tmp, _ := example.TryGetRootAsMonster(builder.FinishedBytes(), 0)
+	monster2, _ := tmp.UnPack()
 	if !reflect.DeepEqual(monster, monster2) {
 		fail(FailString("Pack/Unpack()", monster, monster2))
 	}
@@ -1270,7 +1288,7 @@ func CheckGetRootAsForNonRootTable(fail func(string, ...interface{})) {
 	stat_end := example.StatEnd(b)
 	b.Finish(stat_end)
 
-	stat := example.GetRootAsStat(b.Bytes, b.Head())
+	stat, _ := example.TryGetRootAsStat(b.Bytes, b.Head())
 
 	if got := stat.Id(); !bytes.Equal([]byte("MyStat"), got) {
 		fail(FailString("stat.Id()", "MyStat", got))
@@ -1347,7 +1365,10 @@ func CheckTableAccessors(fail func(string, ...interface{})) {
 	b.Finish(pos)
 	vec3Bytes := b.FinishedBytes()
 	vec3 := &example.Vec3{}
-	flatbuffers.GetRootAs(vec3Bytes, 0, vec3)
+	err := flatbuffers.TryGetRootAs(vec3Bytes, 0, vec3)
+	if err != nil {
+		fail(FailString("unexpected err", nil, err))
+	}
 
 	if bytes.Compare(vec3Bytes, vec3.Table().Bytes) != 0 {
 		fail("invalid vec3 table")
@@ -1364,7 +1385,10 @@ func CheckTableAccessors(fail func(string, ...interface{})) {
 	b.Finish(pos)
 	statBytes := b.FinishedBytes()
 	stat := &example.Stat{}
-	flatbuffers.GetRootAs(statBytes, 0, stat)
+	err = flatbuffers.TryGetRootAs(statBytes, 0, stat)
+	if err != nil {
+		fail(FailString("err", nil, err))
+	}
 
 	if bytes.Compare(statBytes, stat.Table().Bytes) != 0 {
 		fail("invalid stat table")
@@ -1638,7 +1662,7 @@ func CheckEnumValues(fail func(string, ...interface{})) {
 // CheckDocExample checks that the code given in FlatBuffers documentation
 // is syntactically correct.
 func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...interface{})) {
-	monster := example.GetRootAsMonster(buf, off)
+	monster, _ := example.TryGetRootAsMonster(buf, off)
 	_ = monster.Hp()
 	_ = monster.Pos(nil)
 	for i := 0; i < monster.InventoryLength(); i++ {
@@ -1718,16 +1742,18 @@ func CheckParentNamespace(fail func(string, ...interface{})) {
 
 	// read monster with empty parent namespace field
 	{
-		m := example.GetRootAsMonster(empty, 0)
-		if m.ParentNamespaceTest(nil) != nil {
+		m, _ := example.TryGetRootAsMonster(empty, 0)
+		pnt, _ := m.TryParentNamespaceTest(nil)
+		if pnt != nil {
 			fail("expected nil ParentNamespaceTest for empty field")
 		}
 	}
 
 	// read monster with non-empty parent namespace field
 	{
-		m := example.GetRootAsMonster(nonempty, 0)
-		if m.ParentNamespaceTest(nil) == nil {
+		m, _ := example.TryGetRootAsMonster(nonempty, 0)
+		pnt, _ := m.TryParentNamespaceTest(nil)
+		if pnt == nil {
 			fail("expected non-nil ParentNamespaceTest for non-empty field")
 		}
 	}
@@ -2049,7 +2075,7 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 		}
 	}
 
-	buildAssignedTable := func(b *flatbuffers.Builder) *optional_scalars.ScalarStuff {
+	buildAssignedTable := func(b *flatbuffers.Builder) (*optional_scalars.ScalarStuff, error) {
 		optional_scalars.ScalarStuffStart(b)
 		optional_scalars.ScalarStuffAddJustI8(b, int8(5))
 		optional_scalars.ScalarStuffAddMaybeI8(b, int8(5))
@@ -2088,7 +2114,7 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 		optional_scalars.ScalarStuffAddMaybeEnum(b, optional_scalars.OptionalByteTwo)
 		optional_scalars.ScalarStuffAddDefaultEnum(b, optional_scalars.OptionalByteTwo)
 		b.Finish(optional_scalars.ScalarStuffEnd(b))
-		return optional_scalars.GetRootAsScalarStuff(b.FinishedBytes(), 0)
+		return optional_scalars.TryGetRootAsScalarStuff(b.FinishedBytes(), 0)
 	}
 
 	// test default values
@@ -2096,7 +2122,7 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 	fbb := flatbuffers.NewBuilder(1)
 	optional_scalars.ScalarStuffStart(fbb)
 	fbb.Finish(optional_scalars.ScalarStuffEnd(fbb))
-	ss := optional_scalars.GetRootAsScalarStuff(fbb.FinishedBytes(), 0)
+	ss, _ := optional_scalars.TryGetRootAsScalarStuff(fbb.FinishedBytes(), 0)
 	for _, tc := range makeDefaultTestCases(ss) {
 		if tc.result != tc.expect {
 			fail(FailString("Default ScalarStuff: "+tc.what, tc.expect, tc.result))
@@ -2105,7 +2131,7 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 
 	// test assigned values
 	fbb.Reset()
-	ss = buildAssignedTable(fbb)
+	ss, _ = buildAssignedTable(fbb)
 	for _, tc := range makeAssignedTestCases(ss) {
 		if resolvePointer(tc.result) != tc.expect {
 			fail(FailString("Assigned ScalarStuff: "+tc.what, tc.expect, tc.result))
@@ -2165,7 +2191,7 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 		DefaultEnum: optional_scalars.OptionalByteTwo,
 	}
 	fbb.Finish(obj.Pack(fbb))
-	ss = optional_scalars.GetRootAsScalarStuff(fbb.FinishedBytes(), 0)
+	ss, _ = optional_scalars.TryGetRootAsScalarStuff(fbb.FinishedBytes(), 0)
 	for _, tc := range makeAssignedTestCases(ss) {
 		if resolvePointer(tc.result) != tc.expect {
 			fail(FailString("Native Object ScalarStuff: "+tc.what, tc.expect, tc.result))
@@ -2174,7 +2200,7 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 
 	// test native object unpack
 	fbb.Reset()
-	ss = buildAssignedTable(fbb)
+	ss, _ = buildAssignedTable(fbb)
 	ss.UnPackTo(&obj)
 	expectEq := func(what string, a, b interface{}) {
 		if resolvePointer(a) != b {
@@ -2263,7 +2289,7 @@ func CheckByKey(fail func(string, ...interface{})) {
 	moff := example.MonsterEnd(b)
 	b.Finish(moff)
 
-	monster := example.GetRootAsMonster(b.Bytes, b.Head())
+	monster, _ := example.TryGetRootAsMonster(b.Bytes, b.Head())
 	slimeMon := &example.Monster{}
 	monster.TestarrayoftablesByKey(slimeMon, slime.Name)
 	mushroomMon := &example.Monster{}
@@ -2326,7 +2352,7 @@ func BenchmarkVtableDeduplication(b *testing.B) {
 // used throughout this test suite.
 func BenchmarkParseGold(b *testing.B) {
 	buf, offset := CheckGeneratedBuild(false, b.Fatalf)
-	monster := example.GetRootAsMonster(buf, offset)
+	monster, _ := example.TryGetRootAsMonster(buf, offset)
 
 	// use these to prevent allocations:
 	reuse_pos := example.Vec3{}

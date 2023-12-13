@@ -57,20 +57,41 @@ func (t *AnyAmbiguousAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UO
 	return 0
 }
 
-func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAliasesT {
+func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) (*AnyAmbiguousAliasesT, error) {
 	switch rcv {
 	case AnyAmbiguousAliasesM1:
 		var x Monster
-		x.Init(table.Bytes, table.Pos)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: unpacked }, nil
 	case AnyAmbiguousAliasesM2:
 		var x Monster
-		x.Init(table.Bytes, table.Pos)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: unpacked }, nil
 	case AnyAmbiguousAliasesM3:
 		var x Monster
-		x.Init(table.Bytes, table.Pos)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: unpacked }, nil
 	}
-	return nil
+	return nil, nil
 }

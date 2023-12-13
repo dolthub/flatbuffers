@@ -59,20 +59,41 @@ func (t *AnyUniqueAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffs
 	return 0
 }
 
-func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
+func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) (*AnyUniqueAliasesT, error) {
 	switch rcv {
 	case AnyUniqueAliasesM:
 		var x Monster
-		x.Init(table.Bytes, table.Pos)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: unpacked }, nil
 	case AnyUniqueAliasesTS:
 		var x TestSimpleTableWithEnum
-		x.Init(table.Bytes, table.Pos)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: unpacked }, nil
 	case AnyUniqueAliasesM2:
 		var x MyGame__Example2.Monster
-		x.Init(table.Bytes, table.Pos)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
+		err := x.Init(table.Bytes, table.Pos)
+		if err != nil {
+			return nil, err
+		}
+		unpacked, err := x.UnPack()
+		if err != nil {
+			return nil, err
+		}
+		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: unpacked }, nil
 	}
-	return nil
+	return nil, nil
 }

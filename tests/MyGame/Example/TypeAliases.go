@@ -59,7 +59,8 @@ func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return TypeAliasesEnd(builder)
 }
 
-func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
+func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) error {
+	var err error
 	t.I8 = rcv.I8()
 	t.U8 = rcv.U8()
 	t.I16 = rcv.I16()
@@ -80,15 +81,16 @@ func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
 	for j := 0; j < vf64Length; j++ {
 		t.Vf64[j] = rcv.Vf64(j)
 	}
+	return err
 }
 
-func (rcv *TypeAliases) UnPack() *TypeAliasesT {
+func (rcv *TypeAliases) UnPack() (*TypeAliasesT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &TypeAliasesT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type TypeAliases struct {
@@ -97,11 +99,7 @@ type TypeAliases struct {
 
 func InitTypeAliasesRoot(o *TypeAliases, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if TypeAliasesNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) (*TypeAliases, error) {
@@ -109,26 +107,18 @@ func TryGetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) (*TypeAlia
 	return x, InitTypeAliasesRoot(x, buf, offset)
 }
 
-func GetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
-	x := &TypeAliases{}
-	InitTypeAliasesRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) (*TypeAliases, error) {
 	x := &TypeAliases{}
 	return x, InitTypeAliasesRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
-	x := &TypeAliases{}
-	InitTypeAliasesRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if TypeAliasesNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *TypeAliases) Table() flatbuffers.Table {

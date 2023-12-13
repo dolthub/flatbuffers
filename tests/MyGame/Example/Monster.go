@@ -346,8 +346,10 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return MonsterEnd(builder)
 }
 
-func (rcv *Monster) UnPackTo(t *MonsterT) {
-	t.Pos = rcv.Pos(nil).UnPack()
+func (rcv *Monster) UnPackTo(t *MonsterT) error {
+	var err error
+	Pos := rcv.Pos(nil)
+	t.Pos = Pos.UnPack()
 	t.Mana = rcv.Mana()
 	t.Hp = rcv.Hp()
 	t.Name = string(rcv.Name())
@@ -355,7 +357,10 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Color = rcv.Color()
 	testTable := flatbuffers.Table{}
 	if rcv.Test(&testTable) {
-		t.Test = rcv.TestType().UnPack(testTable)
+		t.Test, err = rcv.TestType().UnPack(testTable)
+		if err != nil {
+			return err
+		}
 	}
 	test4Length := rcv.Test4Length()
 	t.Test4 = make([]*TestT, test4Length)
@@ -363,6 +368,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		x := Test{}
 		rcv.Test4(&x, j)
 		t.Test4[j] = x.UnPack()
+
 	}
 	testarrayofstringLength := rcv.TestarrayofstringLength()
 	t.Testarrayofstring = make([]string, testarrayofstringLength)
@@ -373,12 +379,32 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Testarrayoftables = make([]*MonsterT, testarrayoftablesLength)
 	for j := 0; j < testarrayoftablesLength; j++ {
 		x := Monster{}
-		rcv.Testarrayoftables(&x, j)
-		t.Testarrayoftables[j] = x.UnPack()
+		_, err = rcv.TryTestarrayoftables(&x, j)
+		if err != nil {
+			return err
+		}
+		t.Testarrayoftables[j], err = x.UnPack()
+		if err != nil {
+			return err
+		}
 	}
-	t.Enemy = rcv.Enemy(nil).UnPack()
+	Enemy, err := rcv.TryEnemy(nil)
+	if err != nil {
+		return err
+	}
+	t.Enemy, err = Enemy.UnPack()
+	if err != nil {
+		return err
+	}
 	t.Testnestedflatbuffer = rcv.TestnestedflatbufferBytes()
-	t.Testempty = rcv.Testempty(nil).UnPack()
+	Testempty, err := rcv.TryTestempty(nil)
+	if err != nil {
+		return err
+	}
+	t.Testempty, err = Testempty.UnPack()
+	if err != nil {
+		return err
+	}
 	t.Testbool = rcv.Testbool()
 	t.Testhashs32Fnv1 = rcv.Testhashs32Fnv1()
 	t.Testhashu32Fnv1 = rcv.Testhashu32Fnv1()
@@ -407,6 +433,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		x := Ability{}
 		rcv.Testarrayofsortedstruct(&x, j)
 		t.Testarrayofsortedstruct[j] = x.UnPack()
+
 	}
 	t.Flex = rcv.FlexBytes()
 	test5Length := rcv.Test5Length()
@@ -415,6 +442,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		x := Test{}
 		rcv.Test5(&x, j)
 		t.Test5[j] = x.UnPack()
+
 	}
 	vectorOfLongsLength := rcv.VectorOfLongsLength()
 	t.VectorOfLongs = make([]int64, vectorOfLongsLength)
@@ -426,13 +454,26 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < vectorOfDoublesLength; j++ {
 		t.VectorOfDoubles[j] = rcv.VectorOfDoubles(j)
 	}
-	t.ParentNamespaceTest = rcv.ParentNamespaceTest(nil).UnPack()
+	ParentNamespaceTest, err := rcv.TryParentNamespaceTest(nil)
+	if err != nil {
+		return err
+	}
+	t.ParentNamespaceTest, err = ParentNamespaceTest.UnPack()
+	if err != nil {
+		return err
+	}
 	vectorOfReferrablesLength := rcv.VectorOfReferrablesLength()
 	t.VectorOfReferrables = make([]*ReferrableT, vectorOfReferrablesLength)
 	for j := 0; j < vectorOfReferrablesLength; j++ {
 		x := Referrable{}
-		rcv.VectorOfReferrables(&x, j)
-		t.VectorOfReferrables[j] = x.UnPack()
+		_, err = rcv.TryVectorOfReferrables(&x, j)
+		if err != nil {
+			return err
+		}
+		t.VectorOfReferrables[j], err = x.UnPack()
+		if err != nil {
+			return err
+		}
 	}
 	t.SingleWeakReference = rcv.SingleWeakReference()
 	vectorOfWeakReferencesLength := rcv.VectorOfWeakReferencesLength()
@@ -444,8 +485,14 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.VectorOfStrongReferrables = make([]*ReferrableT, vectorOfStrongReferrablesLength)
 	for j := 0; j < vectorOfStrongReferrablesLength; j++ {
 		x := Referrable{}
-		rcv.VectorOfStrongReferrables(&x, j)
-		t.VectorOfStrongReferrables[j] = x.UnPack()
+		_, err = rcv.TryVectorOfStrongReferrables(&x, j)
+		if err != nil {
+			return err
+		}
+		t.VectorOfStrongReferrables[j], err = x.UnPack()
+		if err != nil {
+			return err
+		}
 	}
 	t.CoOwningReference = rcv.CoOwningReference()
 	vectorOfCoOwningReferencesLength := rcv.VectorOfCoOwningReferencesLength()
@@ -461,11 +508,17 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	}
 	anyUniqueTable := flatbuffers.Table{}
 	if rcv.AnyUnique(&anyUniqueTable) {
-		t.AnyUnique = rcv.AnyUniqueType().UnPack(anyUniqueTable)
+		t.AnyUnique, err = rcv.AnyUniqueType().UnPack(anyUniqueTable)
+		if err != nil {
+			return err
+		}
 	}
 	anyAmbiguousTable := flatbuffers.Table{}
 	if rcv.AnyAmbiguous(&anyAmbiguousTable) {
-		t.AnyAmbiguous = rcv.AnyAmbiguousType().UnPack(anyAmbiguousTable)
+		t.AnyAmbiguous, err = rcv.AnyAmbiguousType().UnPack(anyAmbiguousTable)
+		if err != nil {
+			return err
+		}
 	}
 	vectorOfEnumsLength := rcv.VectorOfEnumsLength()
 	t.VectorOfEnums = make([]Color, vectorOfEnumsLength)
@@ -478,10 +531,17 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.ScalarKeySortedTables = make([]*StatT, scalarKeySortedTablesLength)
 	for j := 0; j < scalarKeySortedTablesLength; j++ {
 		x := Stat{}
-		rcv.ScalarKeySortedTables(&x, j)
-		t.ScalarKeySortedTables[j] = x.UnPack()
+		_, err = rcv.TryScalarKeySortedTables(&x, j)
+		if err != nil {
+			return err
+		}
+		t.ScalarKeySortedTables[j], err = x.UnPack()
+		if err != nil {
+			return err
+		}
 	}
-	t.NativeInline = rcv.NativeInline(nil).UnPack()
+	NativeInline := rcv.NativeInline(nil)
+	t.NativeInline = NativeInline.UnPack()
 	t.LongEnumNonEnumDefault = rcv.LongEnumNonEnumDefault()
 	t.LongEnumNormalDefault = rcv.LongEnumNormalDefault()
 	t.NanDefault = rcv.NanDefault()
@@ -492,15 +552,16 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.NegativeInfDefault = rcv.NegativeInfDefault()
 	t.NegativeInfinityDefault = rcv.NegativeInfinityDefault()
 	t.DoubleInfDefault = rcv.DoubleInfDefault()
+	return err
 }
 
-func (rcv *Monster) UnPack() *MonsterT {
+func (rcv *Monster) UnPack() (*MonsterT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &MonsterT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type Monster struct {
@@ -509,11 +570,7 @@ type Monster struct {
 
 func InitMonsterRoot(o *Monster, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if MonsterNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
@@ -521,26 +578,18 @@ func TryGetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, err
 	return x, InitMonsterRoot(x, buf, offset)
 }
 
-func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
-	x := &Monster{}
-	InitMonsterRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (*Monster, error) {
 	x := &Monster{}
 	return x, InitMonsterRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
-	x := &Monster{}
-	InitMonsterRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if MonsterNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *Monster) Table() flatbuffers.Table {
@@ -729,18 +778,6 @@ func (rcv *Monster) TestarrayofstringLength() int {
 
 /// an example documentation comment: this will end up in the generated code
 /// multiline too
-func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
-	if o != 0 {
-		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
-		x = rcv._tab.Indirect(x)
-		obj.Init(rcv._tab.Bytes, x)
-		return true
-	}
-	return false
-}
-
 func (rcv *Monster) TryTestarrayoftables(obj *Monster, j int) (bool, error) {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
@@ -775,19 +812,6 @@ func (rcv *Monster) TestarrayoftablesLength() int {
 
 /// an example documentation comment: this will end up in the generated code
 /// multiline too
-func (rcv *Monster) Enemy(obj *Monster) *Monster {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
-	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
-		if obj == nil {
-			obj = new(Monster)
-		}
-		obj.Init(rcv._tab.Bytes, x)
-		return obj
-	}
-	return nil
-}
-
 func (rcv *Monster) TryEnemy(obj *Monster) (*Monster, error) {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
 	if o != 0 {
@@ -836,19 +860,6 @@ func (rcv *Monster) MutateTestnestedflatbuffer(j int, n byte) bool {
 		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
-}
-
-func (rcv *Monster) Testempty(obj *Stat) *Stat {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(32))
-	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
-		if obj == nil {
-			obj = new(Stat)
-		}
-		obj.Init(rcv._tab.Bytes, x)
-		return obj
-	}
-	return nil
 }
 
 func (rcv *Monster) TryTestempty(obj *Stat) (*Stat, error) {
@@ -1178,19 +1189,6 @@ func (rcv *Monster) MutateVectorOfDoubles(j int, n float64) bool {
 	return false
 }
 
-func (rcv *Monster) ParentNamespaceTest(obj *MyGame.InParentNamespace) *MyGame.InParentNamespace {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
-	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
-		if obj == nil {
-			obj = new(MyGame.InParentNamespace)
-		}
-		obj.Init(rcv._tab.Bytes, x)
-		return obj
-	}
-	return nil
-}
-
 func (rcv *Monster) TryParentNamespaceTest(obj *MyGame.InParentNamespace) (*MyGame.InParentNamespace, error) {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(72))
 	if o != 0 {
@@ -1205,18 +1203,6 @@ func (rcv *Monster) TryParentNamespaceTest(obj *MyGame.InParentNamespace) (*MyGa
 		return obj, nil
 	}
 	return nil, nil
-}
-
-func (rcv *Monster) VectorOfReferrables(obj *Referrable, j int) bool {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
-	if o != 0 {
-		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
-		x = rcv._tab.Indirect(x)
-		obj.Init(rcv._tab.Bytes, x)
-		return true
-	}
-	return false
 }
 
 func (rcv *Monster) TryVectorOfReferrables(obj *Referrable, j int) (bool, error) {
@@ -1285,18 +1271,6 @@ func (rcv *Monster) MutateVectorOfWeakReferences(j int, n uint64) bool {
 	if o != 0 {
 		a := rcv._tab.Vector(o)
 		return rcv._tab.MutateUint64(a+flatbuffers.UOffsetT(j*8), n)
-	}
-	return false
-}
-
-func (rcv *Monster) VectorOfStrongReferrables(obj *Referrable, j int) bool {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
-	if o != 0 {
-		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
-		x = rcv._tab.Indirect(x)
-		obj.Init(rcv._tab.Bytes, x)
-		return true
 	}
 	return false
 }
@@ -1527,18 +1501,6 @@ func (rcv *Monster) MutateTestrequirednestedflatbuffer(j int, n byte) bool {
 	if o != 0 {
 		a := rcv._tab.Vector(o)
 		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
-	}
-	return false
-}
-
-func (rcv *Monster) ScalarKeySortedTables(obj *Stat, j int) bool {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
-	if o != 0 {
-		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
-		x = rcv._tab.Indirect(x)
-		obj.Init(rcv._tab.Bytes, x)
-		return true
 	}
 	return false
 }

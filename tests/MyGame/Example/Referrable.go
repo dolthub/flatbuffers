@@ -19,17 +19,19 @@ func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return ReferrableEnd(builder)
 }
 
-func (rcv *Referrable) UnPackTo(t *ReferrableT) {
+func (rcv *Referrable) UnPackTo(t *ReferrableT) error {
+	var err error
 	t.Id = rcv.Id()
+	return err
 }
 
-func (rcv *Referrable) UnPack() *ReferrableT {
+func (rcv *Referrable) UnPack() (*ReferrableT, error) {
 	if rcv == nil {
-		return nil
+		return nil, nil
 	}
 	t := &ReferrableT{}
-	rcv.UnPackTo(t)
-	return t
+	err := rcv.UnPackTo(t)
+	return t, err
 }
 
 type Referrable struct {
@@ -38,11 +40,7 @@ type Referrable struct {
 
 func InitReferrableRoot(o *Referrable, buf []byte, offset flatbuffers.UOffsetT) error {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	o.Init(buf, n+offset)
-	if ReferrableNumFields < o.Table().NumFields() {
-		return flatbuffers.ErrTableHasUnknownFields
-	}
-	return nil
+	return o.Init(buf, n+offset)
 }
 
 func TryGetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) (*Referrable, error) {
@@ -50,26 +48,18 @@ func TryGetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) (*Referrabl
 	return x, InitReferrableRoot(x, buf, offset)
 }
 
-func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
-	x := &Referrable{}
-	InitReferrableRoot(x, buf, offset)
-	return x
-}
-
 func TryGetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) (*Referrable, error) {
 	x := &Referrable{}
 	return x, InitReferrableRoot(x, buf, offset+flatbuffers.SizeUint32)
 }
 
-func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
-	x := &Referrable{}
-	InitReferrableRoot(x, buf, offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) error {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
+	if ReferrableNumFields < rcv.Table().NumFields() {
+		return flatbuffers.ErrTableHasUnknownFields
+	}
+	return nil
 }
 
 func (rcv *Referrable) Table() flatbuffers.Table {
